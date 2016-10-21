@@ -9,7 +9,17 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.Keywords;
+import com.ibm.watson.developer_cloud.http.ServiceCallback;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
+
+    AlchemyLanguage service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +27,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        service = new AlchemyLanguage();
+        service.setApiKey("22684d7c8acd5f0f2b8a1b19bc6aa6b73b2a7488");
+
+        service.getKeywords(makeRequest("here is some text to analyze")).enqueue(new ServiceCallback<Keywords>() {
+
+
+            @Override
+            public void onResponse(Keywords response) {
+                System.out.println(response.getKeywords());
+                System.out.println(response);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                System.out.println(e.getMessage());
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -26,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    private Map<String, Object> makeRequest(String text) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("text", text);
+        return result;
     }
 
     @Override
