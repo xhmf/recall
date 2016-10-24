@@ -10,21 +10,24 @@
         android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="left"
+        android:layout_weight="1"
+        android:textAlignment="viewStart"
     />
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:layout_weight="1"
+        android:textAlignment="center"
     />
 
     <TextView
         android:id="@+id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="right"
+        android:layout_weight="1"
+        android:textAlignment="viewEnd"
     />
 
 </LinearLayout>

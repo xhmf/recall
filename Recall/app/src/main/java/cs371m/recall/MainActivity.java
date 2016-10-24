@@ -66,8 +66,9 @@ public class MainActivity extends AppCompatActivity {
         speechService.setApiKey(KEY);
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton addRecordingButton = (FloatingActionButton) findViewById(R.id.add_recording);
+
+        addRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 service.getKeywords(makeRequest("here is some text to analyze")).enqueue(new ServiceCallback<Keywords>() {
