@@ -2,6 +2,7 @@ package cs371m.recall;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
@@ -14,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
@@ -65,6 +67,14 @@ public class MainActivity extends AppCompatActivity {
         speechService.setEndPoint("https://stream.watsonplatform.net/speech-to-text/api");
         speechService.setApiKey(KEY);
 
+        ImageButton viewTranscriptButton = (ImageButton) findViewById(R.id.open_transcript);
+        viewTranscriptButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent transcriptIntent = new Intent(getApplicationContext(), TranscriptViewer.class);
+                startActivity(transcriptIntent);
+            }
+        });
 
         FloatingActionButton addRecordingButton = (FloatingActionButton) findViewById(R.id.add_recording);
 
