@@ -12,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -81,40 +83,51 @@ public class MainActivity extends AppCompatActivity {
         addRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                service.getKeywords(makeRequest("here is some text to analyze")).enqueue(new ServiceCallback<Keywords>() {
-                    @Override
-                    public void onResponse(Keywords response) {
-//                        System.out.println(response.getKeywords());
-//                        System.out.println(response);
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-                        speechService.recognizeUsingWebSocket(new MicrophoneInputStream(),
-                                getRecognizeOptions(), new BaseRecognizeCallback() {
-                                    @Override
-                                    public void onTranscription(SpeechResults speechResults) {
-                                        String text = speechResults.getResults().get(0)
-                                                .getAlternatives()
-                                                .get(0).getTranscript();
-                                        System.out.println(text);
-                                    }
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
 
-                                    @Override
-                                    public void onError(Exception e) {
-                                        System.out.println(e.getMessage());
-                                    }
-
-                                    @Override
-                                    public void onDisconnected() {
-                                        System.out.println("DISCONNECTED");
-                                    }
-
-                                });
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                });
+                try {
+                    startActivityForResult(intent, 1);
+                } catch (ActivityNotFoundException a) {
+                    Toast.makeText(getApplicationContext(),
+                            "Oops! Your device doesn't support Speech to Text",
+                            Toast.LENGTH_SHORT).show();
+                }
+//                service.getKeywords(makeRequest("here is some text to analyze")).enqueue(new ServiceCallback<Keywords>() {
+//                    @Override
+//                    public void onResponse(Keywords response) {
+////                        System.out.println(response.getKeywords());
+////                        System.out.println(response);
+//
+//                        speechService.recognizeUsingWebSocket(new MicrophoneInputStream(),
+//                                getRecognizeOptions(), new BaseRecognizeCallback() {
+//                                    @Override
+//                                    public void onTranscription(SpeechResults speechResults) {
+//                                        String text = speechResults.getResults().get(0)
+//                                                .getAlternatives()
+//                                                .get(0).getTranscript();
+//                                        System.out.println(text);
+//                                    }
+//
+//                                    @Override
+//                                    public void onError(Exception e) {
+//                                        System.out.println(e.getMessage());
+//                                    }
+//
+//                                    @Override
+//                                    public void onDisconnected() {
+//                                        System.out.println("DISCONNECTED");
+//                                    }
+//
+//                                });
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Exception e) {
+//                        System.out.println(e.getMessage());
+//                    }
+//                });
             }
         });
     }
@@ -130,19 +143,6 @@ public class MainActivity extends AppCompatActivity {
         return options;
     }
 
-    public void recordSpeech() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Recording audio.");
-        try {
-            startActivityForResult(intent, 1);
-        } catch (ActivityNotFoundException a) {
-            System.out.println(a.getMessage());
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -150,7 +150,18 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && data != null) {
             ArrayList<String> result = data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            System.out.println(result);
+            String text = TextUtils.join(" ", result);
+            service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
+                @Override
+                public void onResponse(Keywords response) {
+                    System.out.println(response);
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Log.e("", e.getMessage());
+                }
+            });
         }
     }
 

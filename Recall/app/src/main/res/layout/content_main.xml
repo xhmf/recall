@@ -69,13 +69,6 @@
 
     </LinearLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/add_recording"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/player"
-        android:layout_alignParentEnd="true"
-        app:srcCompat="@android:drawable/ic_input_add"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler"
@@ -84,5 +77,13 @@
         android:layout_above="@id/player">
 
     </android.support.v7.widget.RecyclerView>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_recording"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/player"
+        android:layout_alignParentEnd="true"
+        app:srcCompat="@android:drawable/ic_input_add"/>
 
 </RelativeLayout>
