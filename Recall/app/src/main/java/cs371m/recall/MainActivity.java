@@ -1,8 +1,10 @@
 package cs371m.recall;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
@@ -30,6 +32,7 @@ import com.ibm.watson.developer_cloud.speech_to_text.v1.model.RecognizeOptions;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.model.SpeechResults;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.websocket.BaseRecognizeCallback;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecordingAdapter adapter;
 
+    List<Recording> recordings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,10 +58,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        List<Recording> recordings = new ArrayList<>();
+        recordings = new ArrayList<>();
         recordings.add(new Recording("first", "10/23"));
         recordings.add(new Recording("second", "22/32"));
         recordings.add(new Recording("third", "42/3"));
+        recordings.add(new Recording("fourth", "123/232"));
+        recordings.add(new Recording("five", "123/232"));
+        recordings.add(new Recording("six", "123/232"));
+        recordings.add(new Recording("seven", "123/232"));
+        recordings.add(new Recording("eight", "123/232"));
+        recordings.add(new Recording("e", "123/232"));
+        recordings.add(new Recording("", "123/232"));
+        recordings.add(new Recording("fourth", "123/232"));
+        recordings.add(new Recording("fourth", "123/232"));
         recordings.add(new Recording("fourth", "123/232"));
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
         adapter = new RecordingAdapter(recordings);
@@ -73,12 +87,14 @@ public class MainActivity extends AppCompatActivity {
         viewTranscriptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent transcriptIntent = new Intent(getApplicationContext(), TranscriptViewer.class);
+                Intent transcriptIntent = new Intent(getApplicationContext(), TranscriptViewer
+                        .class);
                 startActivity(transcriptIntent);
             }
         });
 
-        FloatingActionButton addRecordingButton = (FloatingActionButton) findViewById(R.id.add_recording);
+        FloatingActionButton addRecordingButton = (FloatingActionButton) findViewById(R.id
+                .add_recording);
 
         addRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,48 +102,16 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+                intent.putExtra("android.speech.extra.GET_AUDIO", true);
 
                 try {
                     startActivityForResult(intent, 1);
                 } catch (ActivityNotFoundException a) {
                     Toast.makeText(getApplicationContext(),
-                            "Oops! Your device doesn't support Speech to Text",
+                            "Your device doesn't support Speech to Text",
                             Toast.LENGTH_SHORT).show();
                 }
-//                service.getKeywords(makeRequest("here is some text to analyze")).enqueue(new ServiceCallback<Keywords>() {
-//                    @Override
-//                    public void onResponse(Keywords response) {
-////                        System.out.println(response.getKeywords());
-////                        System.out.println(response);
-//
-//                        speechService.recognizeUsingWebSocket(new MicrophoneInputStream(),
-//                                getRecognizeOptions(), new BaseRecognizeCallback() {
-//                                    @Override
-//                                    public void onTranscription(SpeechResults speechResults) {
-//                                        String text = speechResults.getResults().get(0)
-//                                                .getAlternatives()
-//                                                .get(0).getTranscript();
-//                                        System.out.println(text);
-//                                    }
-//
-//                                    @Override
-//                                    public void onError(Exception e) {
-//                                        System.out.println(e.getMessage());
-//                                    }
-//
-//                                    @Override
-//                                    public void onDisconnected() {
-//                                        System.out.println("DISCONNECTED");
-//                                    }
-//
-//                                });
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Exception e) {
-//                        System.out.println(e.getMessage());
-//                    }
-//                });
             }
         });
     }
@@ -144,17 +128,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(final int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK && data != null) {
             ArrayList<String> result = data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            String text = TextUtils.join(" ", result);
+//            String text = TextUtils.join(" ", result);
+            if (result.size() == 0) {
+                return;
+            }
+            String text = result.get(0);
             service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
                 @Override
                 public void onResponse(Keywords response) {
                     System.out.println(response);
+                    recordings.add(new Recording(response.toString(), "1"));
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(getBaseContext(),
+                            response.getText(),
+                            Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -162,6 +155,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("", e.getMessage());
                 }
             });
+            Uri audioUri = data.getData();
+            ContentResolver contentResolver = getContentResolver();
+            try {
+                InputStream filestream = contentResolver.openInputStream(audioUri);
+                // Give file name and persist to disk.
+            } catch(FileNotFoundException e) {
+                Log.e("SAVING", e.getMessage());
+            }
         }
     }
 
