@@ -35,7 +35,8 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
 
         @Override
         public void onClick(View v) {
-
+            Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+            v.getContext().startActivity(intent);
         }
     }
 

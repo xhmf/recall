@@ -87,8 +87,8 @@ public class MainActivity extends AppCompatActivity {
         viewTranscriptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent transcriptIntent = new Intent(getApplicationContext(), TranscriptViewer
-                        .class);
+                Intent transcriptIntent = new Intent(getApplicationContext(),
+                        TranscriptViewer.class);
                 startActivity(transcriptIntent);
             }
         });
@@ -134,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && data != null) {
             ArrayList<String> result = data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-//            String text = TextUtils.join(" ", result);
             if (result.size() == 0) {
                 return;
             }
@@ -160,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 InputStream filestream = contentResolver.openInputStream(audioUri);
                 // Give file name and persist to disk.
-            } catch(FileNotFoundException e) {
+            } catch (FileNotFoundException e) {
                 Log.e("SAVING", e.getMessage());
             }
         }
