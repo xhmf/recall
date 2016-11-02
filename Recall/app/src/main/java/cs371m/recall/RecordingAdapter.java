@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.parceler.Parcels;
+
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
         public TextView date;
         public TextView duration;
         public View container;
+        public Recording recording;
 
         public RecordViewHolder(View view) {
             super(view);
@@ -36,6 +39,9 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("recording", Parcels.wrap(recording));
+            intent.putExtras(bundle);
             v.getContext().startActivity(intent);
         }
     }
@@ -55,6 +61,7 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
         holder.title.setText(recording.title);
         holder.date.setText(recording.date);
         holder.duration.setText("00:10:00");
+        holder.recording = recording;
     }
 
     @Override

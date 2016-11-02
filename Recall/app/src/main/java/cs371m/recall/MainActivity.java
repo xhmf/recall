@@ -23,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
+import com.ibm.watson.developer_cloud.alchemy.v1.model.Keyword;
 import com.ibm.watson.developer_cloud.alchemy.v1.model.Keywords;
 import com.ibm.watson.developer_cloud.android.library.audio.MicrophoneInputStream;
 import com.ibm.watson.developer_cloud.android.library.audio.utils.ContentType;
@@ -99,19 +100,30 @@ public class MainActivity extends AppCompatActivity {
         addRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
-                intent.putExtra("android.speech.extra.GET_AUDIO", true);
-
-                try {
-                    startActivityForResult(intent, 1);
-                } catch (ActivityNotFoundException a) {
-                    Toast.makeText(getApplicationContext(),
-                            "Your device doesn't support Speech to Text",
-                            Toast.LENGTH_SHORT).show();
-                }
+                // Only for testing. Switch to actual api call when done.
+                Keywords keywords = new Keywords();
+                List<Keyword> words = new ArrayList<>();
+                words.add(testKeyword("first"));
+                words.add(testKeyword("second"));
+                words.add(testKeyword("third"));
+                keywords.setKeywords(words);
+                recordings.add(new Recording(keywords.toString(), "1"));
+                adapter.notifyDataSetChanged();
+//
+//
+//                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//
+//                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+//                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+//                intent.putExtra("android.speech.extra.GET_AUDIO", true);
+//
+//                try {
+//                    startActivityForResult(intent, 1);
+//                } catch (ActivityNotFoundException a) {
+//                    Toast.makeText(getApplicationContext(),
+//                            "Your device doesn't support Speech to Text",
+//                            Toast.LENGTH_SHORT).show();
+//                }
             }
         });
     }
@@ -138,22 +150,25 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             String text = result.get(0);
-            service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
-                @Override
-                public void onResponse(Keywords response) {
-                    System.out.println(response);
-                    recordings.add(new Recording(response.toString(), "1"));
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(getBaseContext(),
-                            response.getText(),
-                            Toast.LENGTH_SHORT).show();
-                }
 
-                @Override
-                public void onFailure(Exception e) {
-                    Log.e("", e.getMessage());
-                }
-            });
+            // TODO Comment back in API call for actual usage.
+//            service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
+//                @Override
+//                public void onResponse(Keywords response) {
+//                    System.out.println(response);
+//                    recordings.add(new Recording(response.toString(), "1"));
+//                    adapter.notifyDataSetChanged();
+//                    Toast.makeText(getBaseContext(),
+//                            response.getText(),
+//                            Toast.LENGTH_SHORT).show();
+//                }
+//
+//                @Override
+//                public void onFailure(Exception e) {
+//                    Log.e("", e.getMessage());
+//                }
+//            });
+
             Uri audioUri = data.getData();
             ContentResolver contentResolver = getContentResolver();
             try {
@@ -163,6 +178,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("SAVING", e.getMessage());
             }
         }
+    }
+
+    // Only for testing purposes.
+    private Keyword testKeyword(String text) {
+        Keyword word = new Keyword();
+        word.setText(text);
+        return word;
     }
 
     private Map<String, Object> makeRequest(String text) {

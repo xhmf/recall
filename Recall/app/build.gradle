@@ -19,6 +19,8 @@ android {
     }
 }
 
+apply plugin: 'com.neenbedankt.android-apt'
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -30,5 +32,7 @@ dependencies {
     compile 'com.ibm.watson.developer_cloud:java-sdk:3.5.0'
     compile 'com.ibm.watson.developer_cloud:android-sdk:0.2.0'
     compile 'com.google.android.exoplayer:exoplayer:r2.0.4'
+    compile 'org.parceler:parceler-api:1.1.6'
+    apt 'org.parceler:parceler:1.1.6'
     testCompile 'junit:junit:4.12'
 }
