@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -33,14 +34,21 @@ import com.ibm.watson.developer_cloud.speech_to_text.v1.model.RecognizeOptions;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.model.SpeechResults;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.websocket.BaseRecognizeCallback;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,6 +57,13 @@ public class MainActivity extends AppCompatActivity {
     private SpeechToText speechService;
     private RecyclerView recyclerView;
     private RecordingAdapter adapter;
+
+    FileFilter fileFilter = new FileFilter() {
+        @Override
+        public boolean accept(File file) {
+            return ((file.isDirectory() && !file.getName().equals("instant-run")) || file.getName().endsWith(".mp3"));
+        }
+    };
 
     List<Recording> recordings;
 
@@ -59,20 +74,20 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Fill recordings list
         recordings = new ArrayList<>();
-        recordings.add(new Recording("first", "10/23"));
-        recordings.add(new Recording("second", "22/32"));
-        recordings.add(new Recording("third", "42/3"));
-        recordings.add(new Recording("fourth", "123/232"));
-        recordings.add(new Recording("five", "123/232"));
-        recordings.add(new Recording("six", "123/232"));
-        recordings.add(new Recording("seven", "123/232"));
-        recordings.add(new Recording("eight", "123/232"));
-        recordings.add(new Recording("e", "123/232"));
-        recordings.add(new Recording("", "123/232"));
-        recordings.add(new Recording("fourth", "123/232"));
-        recordings.add(new Recording("fourth", "123/232"));
-        recordings.add(new Recording("fourth", "123/232"));
+
+        // If we have an SD card, then we should first start looking for recordings in the external directory
+        if (isExternalStorageReadable()) {
+            File externalDataDir = getExternalFilesDir(getResources().getString(R.string.external_recording_dir));
+            addFilesInDirectoryToList(externalDataDir);
+        }
+        // Afterwards, we look through the internal private directory
+        File internalDataDir = getFilesDir();
+        addFilesInDirectoryToList(internalDataDir);
+
+        Collections.sort(recordings);
+
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
         adapter = new RecordingAdapter(recordings);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -107,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
                 words.add(testKeyword("second"));
                 words.add(testKeyword("third"));
                 keywords.setKeywords(words);
-                recordings.add(new Recording(keywords.toString(), "1"));
+                recordings.add(new Recording(keywords.toString(), Calendar.getInstance().getTimeInMillis(), "00:10:00", false));
+                Collections.sort(recordings);
                 adapter.notifyDataSetChanged();
 //
 //
@@ -213,5 +229,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public boolean isExternalStorageReadable() {
+        return isExternalStorageWritable() ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(
+                        Environment.getExternalStorageState());
+    }
+
+    public boolean isExternalStorageWritable() {
+        return Environment.MEDIA_MOUNTED.equals(
+                Environment.getExternalStorageState());
+    }
+
+    private void addFilesInDirectoryToList(File dir) {
+        for (File recording : dir.listFiles(fileFilter)) {
+            String name = recording.getName();
+            long rawDate = recording.lastModified();
+            boolean isDirectory = recording.isDirectory();
+            recordings.add(new Recording(name, rawDate, "00:10:00", isDirectory));
+        }
     }
 }
