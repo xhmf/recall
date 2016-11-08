@@ -2,6 +2,7 @@ package cs371m.recall;
 
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -59,8 +60,14 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
     public void onBindViewHolder(RecordViewHolder holder, int position) {
         final Recording recording = recordingList.get(position);
         holder.title.setText(recording.title);
+        if (recording.isDirectory) {
+            holder.title.setTypeface(holder.title.getTypeface(), Typeface.BOLD);
+        }
+        holder.duration.setText(recording.duration);
+        holder.duration.setTypeface(holder.duration.getTypeface(), Typeface.ITALIC);
         holder.date.setText(recording.date);
-        holder.duration.setText("00:10:00");
+
+        // It might be better to use getAdapterPosition rather than updating the reference we keep
         holder.recording = recording;
     }
 

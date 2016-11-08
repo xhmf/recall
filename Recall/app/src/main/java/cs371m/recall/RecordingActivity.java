@@ -1,6 +1,7 @@
 package cs371m.recall;
 
 import android.content.Intent;
+import android.media.MediaRecorder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,8 @@ import org.parceler.Parcels;
 import java.io.IOException;
 
 public class RecordingActivity extends AppCompatActivity {
+
+    MediaRecorder mediaRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
