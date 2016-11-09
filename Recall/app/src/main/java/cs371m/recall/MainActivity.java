@@ -61,11 +61,12 @@ public class MainActivity extends AppCompatActivity {
     FileFilter fileFilter = new FileFilter() {
         @Override
         public boolean accept(File file) {
-            return ((file.isDirectory() && !file.getName().equals("instant-run")) || file.getName().endsWith(".mp3"));
+            return (file.isDirectory() || (file.getName().endsWith(".mp3") && !file.getName().startsWith(".")));
         }
     };
 
-    List<Recording> recordings;
+    List<Recording> recordings = new ArrayList<>();
+    String currentPath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,22 +75,20 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Fill recordings list
-        recordings = new ArrayList<>();
 
-        // If we have an SD card, then we should first start looking for recordings in the external directory
+
+        // We can only use this app if we have an SD card to write to...
         if (isExternalStorageReadable()) {
             File externalDataDir = getExternalFilesDir(getResources().getString(R.string.external_recording_dir));
-            addFilesInDirectoryToList(externalDataDir);
+            updateCurrentDirectory(externalDataDir);
         }
-        // Afterwards, we look through the internal private directory
-        File internalDataDir = getFilesDir();
-        addFilesInDirectoryToList(internalDataDir);
-
-        Collections.sort(recordings);
+        else {
+            Toast.makeText(this, "You need external storage for this app!", Toast.LENGTH_LONG).show();
+            finish();
+        }
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
-        adapter = new RecordingAdapter(recordings);
+        adapter = new RecordingAdapter(recordings, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -227,6 +226,10 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
+        else if (id == R.id.action_create_subfolder) {
+            // Create a subfolder within the current file view
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -242,12 +245,41 @@ public class MainActivity extends AppCompatActivity {
                 Environment.getExternalStorageState());
     }
 
-    private void addFilesInDirectoryToList(File dir) {
-        for (File recording : dir.listFiles(fileFilter)) {
-            String name = recording.getName();
-            long rawDate = recording.lastModified();
-            boolean isDirectory = recording.isDirectory();
-            recordings.add(new Recording(name, rawDate, "00:10:00", isDirectory));
+    private void updateCurrentDirectory(File dir) {
+        if (dir.isDirectory()) {
+            currentPath = dir.getAbsolutePath();
+            recordings.clear();
+            if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
+                recordings.add(new Recording("../", 0L, "--:--:--", true));
+            }
+            for (File recording : dir.listFiles(fileFilter)) {
+                String name = recording.getName();
+                long rawDate = recording.lastModified();
+                boolean isDirectory = recording.isDirectory();
+                recordings.add(new Recording(name, rawDate, "--:--:--", isDirectory));
+            }
+            Collections.sort(recordings);
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    public void gotoDirectory(String directoryName) {
+        File newCurrentDir = new File(currentPath, directoryName);
+        if (newCurrentDir.exists() && newCurrentDir.isDirectory()) {
+            updateCurrentDirectory(newCurrentDir);
+        }
+    }
+
+    public void gotoPreviousDirectory() {
+        // We don't want to leave the topmost file directory
+        if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
+            File parentDir = new File(currentPath).getParentFile();
+            if (parentDir != null) {
+                updateCurrentDirectory(parentDir);
+            }
         }
     }
 }
