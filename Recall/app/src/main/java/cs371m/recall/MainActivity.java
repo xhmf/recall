@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NewFolderDialogFragment.OnNewFolderDialogFragmentListener {
 
     private final String KEY = "22684d7c8acd5f0f2b8a1b19bc6aa6b73b2a7488";
     AlchemyLanguage service;
@@ -74,8 +74,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
 
         // We can only use this app if we have an SD card to write to...
         if (isExternalStorageReadable()) {
@@ -226,8 +224,9 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-        else if (id == R.id.action_create_subfolder) {
+        else if (id == R.id.action_new_folder) {
             // Create a subfolder within the current file view
+            NewFolderDialogFragment.newInstance().show(getSupportFragmentManager(), "fragment_new_folder_dialog");
             return true;
         }
 
@@ -279,6 +278,18 @@ public class MainActivity extends AppCompatActivity {
             File parentDir = new File(currentPath).getParentFile();
             if (parentDir != null) {
                 updateCurrentDirectory(parentDir);
+            }
+        }
+    }
+
+    @Override
+    public void onNewFolderDialogFragmentDone(String newFolderName) {
+        // I need to do more error checking to make sure that we have a valid folder name
+        if (!newFolderName.isEmpty() && !newFolderName.startsWith(".")) {
+            File newDirectory = new File(currentPath, newFolderName);
+            if (!newDirectory.exists()) {
+                newDirectory.mkdir();
+                updateCurrentDirectory(new File(currentPath));
             }
         }
     }

@@ -6,8 +6,8 @@
           android:orderInCategory="100"
           android:title="@string/action_settings"
           app:showAsAction="never"/>
-    <item android:id="@+id/action_create_subfolder"
+    <item android:id="@+id/action_new_folder"
         android:orderInCategory="101"
-        android:title="@string/action_create_subfolder"
+        android:title="@string/action_new_folder"
         app:showAsAction="never"/>
 </menu>
