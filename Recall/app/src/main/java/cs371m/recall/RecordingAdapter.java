@@ -19,6 +19,7 @@ import java.util.Map;
 public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.RecordViewHolder> {
 
     private List<Recording> recordingList;
+    private MainActivity activity;
 
     public class RecordViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -39,16 +40,32 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(v.getContext(), RecordingActivity.class);
-            Bundle bundle = new Bundle();
-            bundle.putParcelable("recording", Parcels.wrap(recording));
-            intent.putExtras(bundle);
-            v.getContext().startActivity(intent);
+            int position = getAdapterPosition();
+            if (position != RecyclerView.NO_POSITION) {
+                this.recording = recordingList.get(position);
+
+                if (recording.isDirectory) {
+                    if (recording.isPreviousDir()) {
+                        activity.gotoPreviousDirectory();
+                    }
+                    else {
+                        activity.gotoDirectory(recording.title);
+                    }
+                }
+                else {
+                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable("recording", Parcels.wrap(recording));
+                    intent.putExtras(bundle);
+                    v.getContext().startActivity(intent);
+                }
+            }
         }
     }
 
-    public RecordingAdapter(List<Recording> recordingList) {
+    public RecordingAdapter(List<Recording> recordingList, MainActivity activity) {
         this.recordingList = recordingList;
+        this.activity = activity;
     }
 
     @Override
@@ -66,9 +83,6 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
         holder.duration.setText(recording.duration);
         holder.duration.setTypeface(holder.duration.getTypeface(), Typeface.ITALIC);
         holder.date.setText(recording.date);
-
-        // It might be better to use getAdapterPosition rather than updating the reference we keep
-        holder.recording = recording;
     }
 
     @Override

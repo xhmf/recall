@@ -34,13 +34,27 @@ public class Recording implements Comparable<Recording> {
     public Recording(String title, long rawDate, String duration, boolean isDirectory) {
         this.title = title;
         this.rawDate = rawDate;
-        this.date = dateFormat.format(rawDate);
+
+        if (rawDate != 0L) {
+            this.date = dateFormat.format(rawDate);
+        }
+        else {
+            this.date = "(Previous)";
+        }
         this.isDirectory = isDirectory;
         this.duration = this.isDirectory ? "(directory)" : duration;
     }
 
     @Override
     public int compareTo(Recording otherRecording) {
+        // Previous directory link has highest priority
+        if (this.isPreviousDir()) {
+            return -1;
+        }
+        else if (otherRecording.isPreviousDir()) {
+            return 1;
+        }
+
         // Directories have priority over files
         if (this.isDirectory && !otherRecording.isDirectory) {
             return -1;
@@ -61,5 +75,9 @@ public class Recording implements Comparable<Recording> {
                 return 0;
             }
         }
+    }
+
+    public boolean isPreviousDir() {
+        return (this.isDirectory && this.rawDate == 0L);
     }
 }
