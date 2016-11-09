@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:layout_gravity="center"
     tools:context="cs371m.recall.NewFolderDialogFragment">
-    
+
     <EditText
         android:id="@+id/new_folder_edit_text"
         android:layout_width="300dp"

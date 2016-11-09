@@ -4,9 +4,11 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.renderscript.ScriptGroup;
 import android.speech.RecognizerIntent;
 import android.support.design.widget.FloatingActionButton;
@@ -21,6 +23,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.ibm.watson.developer_cloud.alchemy.v1.AlchemyLanguage;
@@ -37,6 +40,7 @@ import com.ibm.watson.developer_cloud.speech_to_text.v1.websocket.BaseRecognizeC
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +72,13 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     List<Recording> recordings = new ArrayList<>();
     String currentPath = "";
 
+    private MediaPlayer mediaPlayer = null;
+    ImageButton playButton;
+    ProgressBar progressBar;
+    Handler handler = new Handler();
+
+    private Toast mainToast = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,19 +87,41 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         setSupportActionBar(toolbar);
 
         // We can only use this app if we have an SD card to write to...
-        if (isExternalStorageReadable()) {
+        if (isExternalStorageReadable() && isExternalStorageWritable()) {
             File externalDataDir = getExternalFilesDir(getResources().getString(R.string.external_recording_dir));
             updateCurrentDirectory(externalDataDir);
         }
         else {
-            Toast.makeText(this, "You need external storage for this app!", Toast.LENGTH_LONG).show();
+            displayToast("You need external storage for this app.");
             finish();
+            return;
         }
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
         adapter = new RecordingAdapter(recordings, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+        // Media player UI
+        playButton = (ImageButton) findViewById(R.id.play_pause);
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.isPlaying()) {
+                        playButton.setImageResource(R.drawable.ic_play);
+                        mediaPlayer.pause();
+                    }
+                    else {
+                        playButton.setImageResource(R.drawable.ic_pause);
+                        mediaPlayer.start();
+                    }
+                }
+            }
+        });
+
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+
 
         service = new AlchemyLanguage();
         service.setApiKey(KEY);
@@ -139,6 +172,18 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 //                }
             }
         });
+
+        // Start progress bar updater thread
+        Runnable progressBarUpdate = new Runnable() {
+            @Override
+            public void run() {
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                }
+                handler.postDelayed(this, 200);
+            }
+        };
+        handler.postDelayed(progressBarUpdate, 200);
     }
 
     private RecognizeOptions getRecognizeOptions() {
@@ -150,6 +195,103 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 .inactivityTimeout(2000)
                 .build();
         return options;
+    }
+
+    // Only for testing purposes.
+    private Keyword testKeyword(String text) {
+        Keyword word = new Keyword();
+        word.setText(text);
+        return word;
+    }
+
+    private Map<String, Object> makeRequest(String text) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("text", text);
+        return result;
+    }
+
+    private boolean isExternalStorageReadable() {
+        return isExternalStorageWritable() ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(
+                        Environment.getExternalStorageState());
+    }
+
+    private boolean isExternalStorageWritable() {
+        return Environment.MEDIA_MOUNTED.equals(
+                Environment.getExternalStorageState());
+    }
+
+    private void updateCurrentDirectory(File dir) {
+        if (dir.isDirectory()) {
+            currentPath = dir.getAbsolutePath();
+            recordings.clear();
+            if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
+                recordings.add(new Recording("../", 0L, "--:--:--", true));
+            }
+            for (File recording : dir.listFiles(fileFilter)) {
+                String name = recording.getName();
+                long rawDate = recording.lastModified();
+                boolean isDirectory = recording.isDirectory();
+                recordings.add(new Recording(name, rawDate, "--:--:--", isDirectory));
+            }
+            Collections.sort(recordings);
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    public void gotoDirectory(String directoryName) {
+        File newCurrentDir = new File(currentPath, directoryName);
+        if (newCurrentDir.exists() && newCurrentDir.isDirectory()) {
+            updateCurrentDirectory(newCurrentDir);
+        }
+    }
+
+    public void gotoPreviousDirectory() {
+        // We don't want to leave the topmost file directory
+        if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
+            File parentDir = new File(currentPath).getParentFile();
+            if (parentDir != null) {
+                updateCurrentDirectory(parentDir);
+            }
+        }
+    }
+
+    public void playRecording(Recording recording) {
+        try {
+            if (mediaPlayer == null) {
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        progressBar.setProgress(progressBar.getMax());
+                    }
+                });
+            }
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(currentPath + File.separator + recording.getTitle());
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+
+            // Update UI elements
+            playButton.setImageResource(R.drawable.ic_pause);
+            progressBar.setMax(mediaPlayer.getDuration());
+            progressBar.setProgress(0);
+        }
+        catch (IOException ex) {
+            displayToast("Unable to play recording.");
+        }
+    }
+
+    private void displayToast(String message) {
+        // Display a message with a toast and cancel out old toasts
+        if (mainToast != null) {
+            mainToast.cancel();
+        }
+        mainToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+        mainToast.show();
     }
 
     @Override
@@ -193,17 +335,14 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
     }
 
-    // Only for testing purposes.
-    private Keyword testKeyword(String text) {
-        Keyword word = new Keyword();
-        word.setText(text);
-        return word;
-    }
-
-    private Map<String, Object> makeRequest(String text) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("text", text);
-        return result;
+    @Override
+    protected void onDestroy() {
+        if (mediaPlayer != null) {
+            MediaPlayer oldMediaPlayer = mediaPlayer;
+            mediaPlayer = null;
+            oldMediaPlayer.release();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -229,62 +368,18 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             NewFolderDialogFragment.newInstance().show(getSupportFragmentManager(), "fragment_new_folder_dialog");
             return true;
         }
+        else if (id == R.id.action_exit) {
+            // TODO: Stop and save any recordings with a default filename of the current time
+            finish();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public boolean isExternalStorageReadable() {
-        return isExternalStorageWritable() ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(
-                        Environment.getExternalStorageState());
-    }
-
-    public boolean isExternalStorageWritable() {
-        return Environment.MEDIA_MOUNTED.equals(
-                Environment.getExternalStorageState());
-    }
-
-    private void updateCurrentDirectory(File dir) {
-        if (dir.isDirectory()) {
-            currentPath = dir.getAbsolutePath();
-            recordings.clear();
-            if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
-                recordings.add(new Recording("../", 0L, "--:--:--", true));
-            }
-            for (File recording : dir.listFiles(fileFilter)) {
-                String name = recording.getName();
-                long rawDate = recording.lastModified();
-                boolean isDirectory = recording.isDirectory();
-                recordings.add(new Recording(name, rawDate, "--:--:--", isDirectory));
-            }
-            Collections.sort(recordings);
-
-            if (adapter != null) {
-                adapter.notifyDataSetChanged();
-            }
-        }
-    }
-
-    public void gotoDirectory(String directoryName) {
-        File newCurrentDir = new File(currentPath, directoryName);
-        if (newCurrentDir.exists() && newCurrentDir.isDirectory()) {
-            updateCurrentDirectory(newCurrentDir);
-        }
-    }
-
-    public void gotoPreviousDirectory() {
-        // We don't want to leave the topmost file directory
-        if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
-            File parentDir = new File(currentPath).getParentFile();
-            if (parentDir != null) {
-                updateCurrentDirectory(parentDir);
-            }
-        }
-    }
-
     @Override
     public void onNewFolderDialogFragmentDone(String newFolderName) {
-        // I need to do more error checking to make sure that we have a valid folder name
+        // TODO: I need to do more error checking to make sure that we have a valid folder name
         if (!newFolderName.isEmpty() && !newFolderName.startsWith(".")) {
             File newDirectory = new File(currentPath, newFolderName);
             if (!newDirectory.exists()) {

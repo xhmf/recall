@@ -3,6 +3,7 @@ package cs371m.recall;
 
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -53,11 +54,12 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
                     }
                 }
                 else {
-                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable("recording", Parcels.wrap(recording));
-                    intent.putExtras(bundle);
-                    v.getContext().startActivity(intent);
+//                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+//                    Bundle bundle = new Bundle();
+//                    bundle.putParcelable("recording", Parcels.wrap(recording));
+//                    intent.putExtras(bundle);
+//                    v.getContext().startActivity(intent);
+                    activity.playRecording(recording);
                 }
             }
         }

@@ -32,40 +32,46 @@
 
         <ImageButton
             android:id="@+id/previous_recording"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/exo_controls_rewind"/>
+            android:background="@null"
+            android:src="@drawable/ic_rewind"/>
         <ImageButton
             android:id="@+id/previous_track"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/exo_controls_previous"/>
+            android:background="@null"
+            android:src="@drawable/ic_previous"/>
         <ImageButton
             android:id="@+id/play_pause"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/exo_controls_play"/>
+            android:background="@null"
+            android:src="@drawable/ic_play"/>
         <ImageButton
             android:id="@+id/next_track"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/exo_controls_next"/>
+            android:background="@null"
+            android:src="@drawable/ic_next"/>
         <ImageButton
             android:id="@+id/next_recording"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/exo_controls_fastforward"/>
+            android:background="@null"
+            android:src="@drawable/ic_fast_forward"/>
         <ImageButton
             android:id="@+id/open_transcript"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:src="@drawable/ic_document" />
+            android:background="@null"
+            android:src="@drawable/ic_transcript" />
 
     </LinearLayout>
 
