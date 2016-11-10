@@ -195,30 +195,30 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             @Override
             public void onClick(View view) {
                 // Only for testing. Switch to actual api call when done.
-                Keywords keywords = new Keywords();
-                List<Keyword> words = new ArrayList<>();
-                words.add(testKeyword("first"));
-                words.add(testKeyword("second"));
-                words.add(testKeyword("third"));
-                keywords.setKeywords(words);
-                recordings.add(new Recording(keywords.toString(), Calendar.getInstance().getTimeInMillis(), "00:10:00", false));
-                Collections.sort(recordings);
-                adapter.notifyDataSetChanged();
-//
-//
-//                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-//
-//                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-//                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
-//                intent.putExtra("android.speech.extra.GET_AUDIO", true);
-//
-//                try {
-//                    startActivityForResult(intent, 1);
-//                } catch (ActivityNotFoundException a) {
-//                    Toast.makeText(getApplicationContext(),
-//                            "Your device doesn't support Speech to Text",
-//                            Toast.LENGTH_SHORT).show();
-//                }
+//                Keywords keywords = new Keywords();
+//                List<Keyword> words = new ArrayList<>();
+//                words.add(testKeyword("first"));
+//                words.add(testKeyword("second"));
+//                words.add(testKeyword("third"));
+//                keywords.setKeywords(words);
+//                recordings.add(new Recording(keywords.toString(), Calendar.getInstance().getTimeInMillis(), "00:10:00", false));
+//                Collections.sort(recordings);
+//                adapter.notifyDataSetChanged();
+
+
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+                intent.putExtra("android.speech.extra.GET_AUDIO", true);
+
+                try {
+                    startActivityForResult(intent, 1);
+                } catch (ActivityNotFoundException a) {
+                    Toast.makeText(getApplicationContext(),
+                            "Your device doesn't support Speech to Text",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -366,22 +366,28 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             String text = result.get(0);
 
             // TODO Comment back in API call for actual usage.
-//            service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
-//                @Override
-//                public void onResponse(Keywords response) {
-//                    System.out.println(response);
-//                    recordings.add(new Recording(response.toString(), "1"));
-//                    adapter.notifyDataSetChanged();
-//                    Toast.makeText(getBaseContext(),
-//                            response.getText(),
-//                            Toast.LENGTH_SHORT).show();
-//                }
-//
-//                @Override
-//                public void onFailure(Exception e) {
-//                    Log.e("", e.getMessage());
-//                }
-//            });
+            service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
+                @Override
+                public void onResponse(Keywords response) {
+                    System.out.println(response);
+                    recordings.add(new Recording(response.toString(),
+                            Calendar.getInstance().getTimeInMillis(), "00:10:00", false));
+                    recyclerView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                    Toast.makeText(getBaseContext(),
+                            response.getText(),
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Log.e("", e.getMessage());
+                }
+            });
 
             Uri audioUri = data.getData();
             ContentResolver contentResolver = getContentResolver();
