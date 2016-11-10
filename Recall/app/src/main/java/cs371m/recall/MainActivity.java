@@ -71,9 +71,14 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 
     List<Recording> recordings = new ArrayList<>();
     String currentPath = "";
+    int currentRecordingIndex = -1;
+    List<Recording> currentRecordingDirectory = new ArrayList<>();
+    Recording currentRecording = null;
 
     private MediaPlayer mediaPlayer = null;
     ImageButton playButton;
+    ImageButton previousRecordingButton;
+    ImageButton nextRecordingButton;
     ProgressBar progressBar;
     Handler handler = new Handler();
 
@@ -116,6 +121,50 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                         playButton.setImageResource(R.drawable.ic_pause);
                         mediaPlayer.start();
                     }
+                }
+            }
+        });
+
+        previousRecordingButton = (ImageButton) findViewById(R.id.previous_recording);
+        previousRecordingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (currentRecording != null && currentRecordingDirectory.size() != 0) {
+                    int currentPosition = currentRecordingDirectory.indexOf(currentRecording);
+                    if (currentPosition < 0) {
+                        return;
+                    }
+                    int previousPosition = (currentPosition > 0 ? currentPosition - 1 : currentRecordingDirectory.size() - 1);
+
+                    // If we encounter a directory then wrap around to the back of the list
+                    while (currentRecordingDirectory.get(previousPosition).isDirectory) {
+                        previousPosition = (previousPosition > 0 ? previousPosition - 1 : currentRecordingDirectory.size() - 1);
+                    }
+                    Recording previousRecording = currentRecordingDirectory.get(previousPosition);
+
+                    playRecording(previousRecording);
+                }
+            }
+        });
+
+        nextRecordingButton = (ImageButton) findViewById(R.id.next_recording);
+        nextRecordingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (currentRecording != null && currentRecordingDirectory.size() != 0) {
+                    int currentPosition = currentRecordingDirectory.indexOf(currentRecording);
+                    if (currentPosition < 0) {
+                        return;
+                    }
+                    int nextPosition = (currentPosition + 1) % currentRecordingDirectory.size();
+
+                    // If we encounter a directory then that means we've wrapped around to the front of the list
+                    while (currentRecordingDirectory.get(nextPosition).isDirectory) {
+                        nextPosition = (nextPosition + 1) % currentRecordingDirectory.size();
+                    }
+                    Recording nextRecording = currentRecordingDirectory.get(nextPosition);
+
+                    playRecording(nextRecording);
                 }
             }
         });
@@ -279,10 +328,20 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             playButton.setImageResource(R.drawable.ic_pause);
             progressBar.setMax(mediaPlayer.getDuration());
             progressBar.setProgress(0);
+
+            // Update state information
+            if (currentRecordingDirectory.indexOf(recording) < 0) {
+                currentRecordingDirectory = new ArrayList<>(recordings);
+            }
+            currentRecording = recording;
         }
         catch (IOException ex) {
             displayToast("Unable to play recording.");
         }
+    }
+
+    private void buildCurrentRecordingDirectory(String directoryPath) {
+
     }
 
     private void displayToast(String message) {
