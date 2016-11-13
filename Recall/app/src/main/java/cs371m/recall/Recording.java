@@ -7,11 +7,16 @@ import org.parceler.Parcel;
 import org.parceler.ParcelConstructor;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @Parcel
-public class Recording implements Comparable<Recording> {
+public class Recording implements Comparable<Recording>, Serializable {
 
     public String title;
 //    public String url;
@@ -21,6 +26,8 @@ public class Recording implements Comparable<Recording> {
     public long rawDate;
     static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 //    public Keywords keywords;
+    public List<String> keywords;
+    private boolean modified;
 
     public String getTitle() {
         return title;
@@ -32,6 +39,7 @@ public class Recording implements Comparable<Recording> {
 
     @ParcelConstructor
     public Recording(String title, long rawDate, String duration, boolean isDirectory) {
+        this.modified = true;
         this.title = title;
         this.rawDate = rawDate;
 
@@ -79,5 +87,23 @@ public class Recording implements Comparable<Recording> {
 
     public boolean isPreviousDir() {
         return (this.isDirectory && this.rawDate == 0L);
+    }
+
+    public void save(String path) {
+        if (!modified || isDirectory || title.equals("../")) {
+            return;
+        }
+        try {
+            this.modified = false; // So that after we read this file we don't rewrite again
+            File file = new File(path, rawDate + ".recall");
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this);
+            oos.close();
+            fos.close();
+        } catch (IOException e) {
+
+        }
     }
 }
