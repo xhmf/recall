@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,31 +210,31 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             @Override
             public void onClick(View view) {
                 // Only for testing. Switch to actual api call when done.
-                Keywords keywords = new Keywords();
-                List<Keyword> words = new ArrayList<>();
-                words.add(testKeyword("first"));
-                words.add(testKeyword("second"));
-                words.add(testKeyword("third"));
-                keywords.setKeywords(words);
-                recordings.add(new Recording(keywords.toString(), Calendar.getInstance()
-                        .getTimeInMillis(), "00:10:00", false));
-                Collections.sort(recordings);
-                adapter.notifyDataSetChanged();
+//                Keywords keywords = new Keywords();
+//                List<Keyword> words = new ArrayList<>();
+//                words.add(testKeyword("first"));
+//                words.add(testKeyword("second"));
+//                words.add(testKeyword("third"));
+//                keywords.setKeywords(words);
+//                recordings.add(new Recording(keywords.toString(), Calendar.getInstance()
+//                        .getTimeInMillis(), "00:10:00", false));
+//                Collections.sort(recordings);
+//                adapter.notifyDataSetChanged();
 
 
-//                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-//
-//                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-//                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
-//                intent.putExtra("android.speech.extra.GET_AUDIO", true);
-//
-//                try {
-//                    startActivityForResult(intent, 1);
-//                } catch (ActivityNotFoundException a) {
-//                    Toast.makeText(getApplicationContext(),
-//                            "Your device doesn't support Speech to Text",
-//                            Toast.LENGTH_SHORT).show();
-//                }
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+                intent.putExtra("android.speech.extra.GET_AUDIO", true);
+
+                try {
+                    startActivityForResult(intent, 1);
+                } catch (ActivityNotFoundException a) {
+                    Toast.makeText(getApplicationContext(),
+                            "Your device doesn't support Speech to Text",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -326,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             for (File recording : dir.listFiles(fileFilter)) {
                 if (recording.isDirectory()) {
                     recordings.add(dirToRecording(recording));
-                } else if (recording.getName().endsWith(".recall")){
+                } else if (recording.getName().endsWith(".recall")) {
                     Recording current = readRecording(recording);
                     if (current != null) {
                         recordings.add(current);
@@ -339,6 +340,13 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 adapter.notifyDataSetChanged();
             }
         }
+    }
+
+    /*
+     * Returns the directory where all audio recordings will be stored.
+     */
+    private String getAudioDir() {
+        return getExternalFilesDir("Audio").getAbsolutePath();
     }
 
     public void gotoDirectory(String directoryName) {
@@ -414,15 +422,16 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             if (result.size() == 0) {
                 return;
             }
-            String text = result.get(0);
+            final String text = result.get(0);
+            final long timestamp = Calendar.getInstance().getTimeInMillis();
 
             // TODO Comment back in API call for actual usage.
             service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
                 @Override
                 public void onResponse(Keywords response) {
                     System.out.println(response);
-                    recordings.add(new Recording(response.toString(),
-                            Calendar.getInstance().getTimeInMillis(), "00:10:00", false));
+                    recordings.add(new Recording(response.toString(), timestamp, "00:10:00",
+                            false));
                     recyclerView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -441,13 +450,31 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             });
 
             Uri audioUri = data.getData();
-            ContentResolver contentResolver = getContentResolver();
+            saveAudio(audioUri, Long.toString(timestamp));
+        }
+    }
+
+    private void saveAudio(Uri audioUri, String fileName) {
+        ContentResolver contentResolver = getContentResolver();
+        try {
+            InputStream filestream = contentResolver.openInputStream(audioUri);
+            // Give file name and persist to disk.
+            File file = new File(getAudioDir(), fileName + ".3pg");
+            OutputStream out = new FileOutputStream(file);
             try {
-                InputStream filestream = contentResolver.openInputStream(audioUri);
-                // Give file name and persist to disk.
-            } catch (FileNotFoundException e) {
-                Log.e(APP, e.getMessage());
+                byte[] buffer = new byte[4 * 1024]; // or other buffer size
+                int read;
+
+                while ((read = filestream.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+                out.flush();
+            } finally {
+                out.close();
+                filestream.close();
             }
+        } catch (IOException e) {
+            Log.e(APP, e.getMessage());
         }
     }
 
