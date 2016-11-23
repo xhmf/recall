@@ -1,7 +1,7 @@
 package cs371m.recall;
 
 
-import com.ibm.watson.developer_cloud.alchemy.v1.model.Keywords;
+import android.util.Log;
 
 import org.parceler.Parcel;
 import org.parceler.ParcelConstructor;
@@ -19,13 +19,13 @@ import java.util.List;
 public class Recording implements Comparable<Recording>, Serializable {
 
     public String title;
-//    public String url;
     public String date;
     public String duration;
     public boolean isDirectory;
     public long rawDate;
+    public String audioPath;
+    public String transcript;
     static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-//    public Keywords keywords;
     public List<String> keywords;
     private boolean modified;
 
@@ -35,6 +35,11 @@ public class Recording implements Comparable<Recording>, Serializable {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public static Recording create(String title, long rawDate, String duration, boolean isDirectory) {
+        Recording result = new Recording(title, rawDate, duration, isDirectory);
+        return result;
     }
 
     @ParcelConstructor
@@ -51,6 +56,26 @@ public class Recording implements Comparable<Recording>, Serializable {
         }
         this.isDirectory = isDirectory;
         this.duration = this.isDirectory ? "(directory)" : duration;
+    }
+
+    public Recording addAudioPath(String path) {
+        this.audioPath = path;
+        return this;
+    }
+
+    public Recording addTranscript(String text) {
+        this.transcript = text;
+        return this;
+    }
+
+    public Recording addKeywords(List<String> keywords) {
+        this.keywords = keywords;
+        return this;
+    }
+
+    public Recording addKeyword(String word) {
+        this.keywords.add(word);
+        return this;
     }
 
     @Override
@@ -103,7 +128,7 @@ public class Recording implements Comparable<Recording>, Serializable {
             oos.close();
             fos.close();
         } catch (IOException e) {
-
+            Log.e(MainActivity.APP, e.getMessage());
         }
     }
 }

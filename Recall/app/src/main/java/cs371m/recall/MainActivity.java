@@ -48,6 +48,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.security.Key;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +65,7 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity implements NewFolderDialogFragment
         .OnNewFolderDialogFragmentListener {
 
-    private final String APP = "recall";
+    static public final String APP = "recall";
     private final String KEY = "22684d7c8acd5f0f2b8a1b19bc6aa6b73b2a7488";
     private final String AUDIO_FILES = "audio";
     AlchemyLanguage service;
@@ -210,31 +211,35 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             @Override
             public void onClick(View view) {
                 // Only for testing. Switch to actual api call when done.
-//                Keywords keywords = new Keywords();
-//                List<Keyword> words = new ArrayList<>();
-//                words.add(testKeyword("first"));
-//                words.add(testKeyword("second"));
-//                words.add(testKeyword("third"));
-//                keywords.setKeywords(words);
-//                recordings.add(new Recording(keywords.toString(), Calendar.getInstance()
-//                        .getTimeInMillis(), "00:10:00", false));
-//                Collections.sort(recordings);
-//                adapter.notifyDataSetChanged();
+                Keywords keywords = new Keywords();
+                List<Keyword> words = new ArrayList<>();
+                words.add(testKeyword("first"));
+                words.add(testKeyword("second"));
+                words.add(testKeyword("third"));
+                keywords.setKeywords(words);
+                recordings.add(Recording.create(keywords.toString(), Calendar.getInstance()
+                        .getTimeInMillis(), "00:10:00", false)
+                        .addAudioPath("some/sample/path")
+                        .addTranscript("first second third first second third")
+                        .addKeywords(new ArrayList<String>(Arrays.asList("first", "second", "third"))));
+
+                Collections.sort(recordings);
+                adapter.notifyDataSetChanged();
 
 
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
-                intent.putExtra("android.speech.extra.GET_AUDIO", true);
-
-                try {
-                    startActivityForResult(intent, 1);
-                } catch (ActivityNotFoundException a) {
-                    Toast.makeText(getApplicationContext(),
-                            "Your device doesn't support Speech to Text",
-                            Toast.LENGTH_SHORT).show();
-                }
+//                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//
+//                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+//                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+//                intent.putExtra("android.speech.extra.GET_AUDIO", true);
+//
+//                try {
+//                    startActivityForResult(intent, 1);
+//                } catch (ActivityNotFoundException a) {
+//                    Toast.makeText(getApplicationContext(),
+//                            "Your device doesn't support Speech to Text",
+//                            Toast.LENGTH_SHORT).show();
+//                }
             }
         });
 
@@ -430,6 +435,10 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 @Override
                 public void onResponse(Keywords response) {
                     System.out.println(response);
+                    recordings.add(Recording.create(response.toString(), timestamp, "", false)
+                            .addTranscript(text)
+                            .addKeywords(createKeywordList(response))
+                    );
                     recordings.add(new Recording(response.toString(), timestamp, "00:10:00",
                             false));
                     recyclerView.post(new Runnable() {
@@ -452,6 +461,17 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             Uri audioUri = data.getData();
             saveAudio(audioUri, Long.toString(timestamp));
         }
+    }
+
+    private List<String> createKeywordList(Keywords keywords) {
+        List<String> result = new ArrayList<>();
+        for(Keyword word : keywords.getKeywords()) {
+//            if (word.getRelevance() > 50) {
+//                result.add(word.getText());
+//            }
+            result.add(word.getText());
+        }
+        return result;
     }
 
     private void saveAudio(Uri audioUri, String fileName) {

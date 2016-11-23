@@ -1,64 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:id="@+id/activity_recording"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:paddingBottom="@dimen/activity_vertical_margin"
-              android:paddingLeft="@dimen/activity_horizontal_margin"
-              android:paddingRight="@dimen/activity_horizontal_margin"
-              android:paddingTop="@dimen/activity_vertical_margin"
-              tools:context="cs371m.recall.RecordingActivity">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/activity_recording"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                tools:context="cs371m.recall.RecordingActivity">
 
-    <TextView
-        android:id="@+id/current_track"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Current track:"
-        android:layout_gravity="center_horizontal"
-    />
-    <TextView
-        android:id="@+id/current_recording_time"
-        android:layout_below="@+id/current_track"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="00:00:00"
-        android:layout_gravity="center_horizontal"
-    />
+
     <LinearLayout
-        android:layout_below="@id/current_recording_time"
+        android:id="@+id/title"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Produce transcript:"
+            android:layout_gravity="center_horizontal"
+            android:text="Title: "
         />
-        <ToggleButton
-            android:id="@+id/produce_transcript_toggle"
+
+        <EditText
+            android:id="@+id/title_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            />
+            android:hint="Title"
+        />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_alignParentBottom="true"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/duration"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-                  android:layout_centerHorizontal="true"
+        android:layout_below="@id/title"
+        android:text="Duration: "
+    />
+
+    <TextView
+        android:id="@+id/transcript"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/duration"/>
+
+
+    <LinearLayout
+        android:id="@+id/keywords"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/transcript"
+        android:orientation="horizontal"
     >
-        <Button android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="NEW TRACK"
-        />
-        <Button android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FINISH"
-        />
+        <Button
+            android:id="@+id/key1"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/key2"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/key3"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 
