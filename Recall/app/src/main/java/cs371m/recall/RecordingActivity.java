@@ -61,6 +61,8 @@ public class RecordingActivity extends AppCompatActivity {
             keyword2.setOnClickListener(createClickAction(recording.keywords.get(1)));
             keyword3.setText(recording.keywords.get(2));
             keyword3.setOnClickListener(createClickAction(recording.keywords.get(2)));
+
+
         }
 
     }

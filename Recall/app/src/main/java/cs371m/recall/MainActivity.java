@@ -38,6 +38,8 @@ import com.ibm.watson.developer_cloud.speech_to_text.v1.model.RecognizeOptions;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.model.SpeechResults;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.websocket.BaseRecognizeCallback;
 
+import org.parceler.Parcels;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -83,11 +85,10 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 
     List<Recording> recordings = new ArrayList<>();
     String currentPath = "";
-    int currentRecordingIndex = -1;
     List<Recording> currentRecordingDirectory = new ArrayList<>();
     Recording currentRecording = null;
 
-    private MediaPlayer mediaPlayer = null;
+    static public MediaPlayer mediaPlayer = null;
     ImageButton playButton;
     ImageButton previousRecordingButton;
     ImageButton nextRecordingButton;
@@ -198,9 +199,13 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         viewTranscriptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent transcriptIntent = new Intent(getApplicationContext(),
-                        TranscriptViewer.class);
-                startActivity(transcriptIntent);
+                if (currentRecording != null) {
+                    Intent recordingActivityIntent = new Intent(getApplicationContext(), RecordingActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable("recording", Parcels.wrap(currentRecording));
+                    recordingActivityIntent.putExtras(bundle);
+                    startActivity(recordingActivityIntent);
+                }
             }
         });
 
@@ -213,19 +218,18 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 // Only for testing. Switch to actual api call when done.
                 Keywords keywords = new Keywords();
                 List<Keyword> words = new ArrayList<>();
-                words.add(testKeyword("first"));
-                words.add(testKeyword("second"));
-                words.add(testKeyword("third"));
+                words.add(testKeyword("game"));
+                words.add(testKeyword("you"));
+                words.add(testKeyword("mad"));
                 keywords.setKeywords(words);
                 recordings.add(Recording.create(keywords.toString(), Calendar.getInstance()
-                        .getTimeInMillis(), "00:10:00", false)
-                        .addAudioPath("some/sample/path")
-                        .addTranscript("first second third first second third")
-                        .addKeywords(new ArrayList<String>(Arrays.asList("first", "second", "third"))));
+                        .getTimeInMillis(), "00:00:05", false)
+                        .addAudioPath(getExternalFilesDir(getResources().getString(R.string.external_recording_dir)).getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
+                        .addTranscript("It's only game. Why you have to be mad?")
+                        .addKeywords(new ArrayList<String>(Arrays.asList("game", "you", "mad"))));
 
                 Collections.sort(recordings);
                 adapter.notifyDataSetChanged();
-
 
 //                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 //
@@ -327,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             currentPath = dir.getAbsolutePath();
             recordings.clear();
             if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
-                recordings.add(new Recording("../", 0L, "--:--:--", true));
+                recordings.add(new Recording("../", 0L, "", true));
             }
             for (File recording : dir.listFiles(fileFilter)) {
                 if (recording.isDirectory()) {
@@ -385,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 });
             }
             mediaPlayer.reset();
-            mediaPlayer.setDataSource(currentPath + File.separator + recording.getTitle());
+            mediaPlayer.setDataSource(recording.audioPath);
             mediaPlayer.prepare();
             mediaPlayer.start();
 
@@ -402,10 +406,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         } catch (IOException ex) {
             displayToast("Unable to play recording.");
         }
-    }
-
-    private void buildCurrentRecordingDirectory(String directoryPath) {
-
     }
 
     private void displayToast(String message) {
@@ -439,8 +439,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                             .addTranscript(text)
                             .addKeywords(createKeywordList(response))
                     );
-                    recordings.add(new Recording(response.toString(), timestamp, "00:10:00",
-                            false));
                     recyclerView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -505,6 +503,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             mediaPlayer = null;
             oldMediaPlayer.release();
         }
+        // Save any recordings with a default filename of the current time
+        saveRecordings();
         super.onDestroy();
     }
 
@@ -531,7 +531,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                     "fragment_new_folder_dialog");
             return true;
         } else if (id == R.id.action_exit) {
-            // TODO: Stop and save any recordings with a default filename of the current time
             finish();
             return true;
         }

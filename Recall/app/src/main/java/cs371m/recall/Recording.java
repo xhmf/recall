@@ -48,12 +48,7 @@ public class Recording implements Comparable<Recording>, Serializable {
         this.title = title;
         this.rawDate = rawDate;
 
-        if (rawDate != 0L) {
-            this.date = dateFormat.format(rawDate);
-        }
-        else {
-            this.date = "(Previous)";
-        }
+        this.date = rawDate != 0L ? dateFormat.format(rawDate) : "(Previous)";
         this.isDirectory = isDirectory;
         this.duration = this.isDirectory ? "(directory)" : duration;
     }
@@ -83,28 +78,23 @@ public class Recording implements Comparable<Recording>, Serializable {
         // Previous directory link has highest priority
         if (this.isPreviousDir()) {
             return -1;
-        }
-        else if (otherRecording.isPreviousDir()) {
+        } else if (otherRecording.isPreviousDir()) {
             return 1;
         }
 
         // Directories have priority over files
         if (this.isDirectory && !otherRecording.isDirectory) {
             return -1;
-        }
-        else if (!this.isDirectory && otherRecording.isDirectory) {
+        } else if (!this.isDirectory && otherRecording.isDirectory) {
             return 1;
-        }
-        else {
+        } else {
             // At this stage, both recordings are directories or files
             // Either way, whichever is new has priority;
             if (this.rawDate > otherRecording.rawDate) {
                 return -1;
-            }
-            else if (this.rawDate < otherRecording.rawDate) {
+            } else if (this.rawDate < otherRecording.rawDate) {
                 return 1;
-            }
-            else {
+            } else {
                 return 0;
             }
         }

@@ -57,12 +57,12 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
                     }
                 }
                 else {
-                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable("recording", Parcels.wrap(recording));
-                    intent.putExtras(bundle);
-                    v.getContext().startActivity(intent);
-//                    activity.playRecording(recording);
+//                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+//                    Bundle bundle = new Bundle();
+//                    bundle.putParcelable("recording", Parcels.wrap(recording));
+//                    intent.putExtras(bundle);
+//                    v.getContext().startActivity(intent);
+                    activity.playRecording(recording);
                 }
             }
         }
@@ -82,11 +82,6 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
     public void onBindViewHolder(RecordViewHolder holder, int position) {
         final Recording recording = recordingList.get(position);
         holder.title.setText(recording.title);
-//        if (recording.isDirectory) {
-//            holder.title.setTypeface(holder.title.getTypeface(), Typeface.BOLD);
-//        } else {
-//            holder.title.setTypeface(holder.title.getTypeface(), Typeface.NORMAL);
-//        }
         holder.duration.setText(recording.duration);
         holder.duration.setTypeface(holder.duration.getTypeface(), Typeface.ITALIC);
         holder.date.setText(recording.date);
