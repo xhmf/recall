@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cs371m.recall.MainActivity.currentRecording;
-
 public class RecordingActivity extends AppCompatActivity {
 
     public EditText title;
@@ -37,12 +35,6 @@ public class RecordingActivity extends AppCompatActivity {
     public Button keyword3;
     public Recording recording;
     private SpannableString displayTranscript;
-
-//    public EditText transcriptPageNumber;
-//    public TextView transcriptPageCount;
-//    private int currentPageNumber;
-//    private int pageCount;
-//    final private int maxWordsPerPage = 60;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +50,7 @@ public class RecordingActivity extends AppCompatActivity {
                     if (!newTitle.isEmpty() && !newTitle.startsWith(".")) {
                         if (recording != null) {
                             recording.setTitle(newTitle);
-                            MainActivity.currentRecording.setTitle(newTitle);
+                            recording.save();
                             return true;
                         }
                     }
@@ -72,50 +64,25 @@ public class RecordingActivity extends AppCompatActivity {
         keyword2 = (Button) findViewById(R.id.key2);
         keyword3 = (Button) findViewById(R.id.key3);
 
-//        transcriptPageCount = (TextView) findViewById(R.id.transcript_page_count);
-//        transcriptPageNumber = (EditText) findViewById(R.id.input_transcript_page_number);
-//        transcriptPageNumber.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-//            @Override
-//            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-//                if (EditorInfo.IME_ACTION_DONE == actionId) {
-//                    String currentPageNumberText = transcriptPageNumber.getText().toString().trim();
-//
-//                    if (!currentPageNumberText.isEmpty()) {
-//                        int newCurrentPageNumber = Integer.parseInt(currentPageNumberText);
-//
-//                        if (newCurrentPageNumber > 0 && newCurrentPageNumber <= pageCount) {
-//                            currentPageNumber = newCurrentPageNumber;
-//                            return true;
-//                        }
-//                    }
-//
-//                    transcriptPageNumber.setText(currentPageNumber + "");
-//                }
-//                return false;
-//            }
-//        });
-
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
             Parcelable parcel = bundle.getParcelable("recording");
             recording = Parcels.unwrap(parcel);
-            title.setText(recording.title);
-            displayTranscript = new SpannableString(recording.transcript);
-            transcript.setText(displayTranscript);
 
-//            computePageCount();
+            if (recording != null) {
+                title.setText(recording.title);
+                displayTranscript = new SpannableString(recording.transcript);
+                transcript.setText(displayTranscript);
 
-            keyword1.setText(recording.keywords.get(0));
-            keyword1.setOnClickListener(createClickAction(recording.keywords.get(0)));
-            keyword2.setText(recording.keywords.get(1));
-            keyword2.setOnClickListener(createClickAction(recording.keywords.get(1)));
-            keyword3.setText(recording.keywords.get(2));
-            keyword3.setOnClickListener(createClickAction(recording.keywords.get(2)));
+                keyword1.setText(recording.keywords.get(0));
+                keyword1.setOnClickListener(createClickAction(recording.keywords.get(0)));
+                keyword2.setText(recording.keywords.get(1));
+                keyword2.setOnClickListener(createClickAction(recording.keywords.get(1)));
+                keyword3.setText(recording.keywords.get(2));
+                keyword3.setOnClickListener(createClickAction(recording.keywords.get(2)));
+            }
         }
-
-//        transcriptPageCount.setText(pageCount + "");
-//        transcriptPageNumber.setText(currentPageNumber + "");
     }
 
     private View.OnClickListener createClickAction(final String word) {
@@ -149,15 +116,4 @@ public class RecordingActivity extends AppCompatActivity {
         }
         transcript.setText(displayTranscript);
     }
-
-//    private void computePageCount() {
-//        if (recording == null || recording.getWordCount() == 0) {
-//            pageCount = 0;
-//            currentPageNumber = 0;
-//            return;
-//        }
-//
-//        pageCount = (recording.getWordCount() / maxWordsPerPage) + 1;
-//        currentPageNumber = 1;
-//    }
 }

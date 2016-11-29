@@ -83,17 +83,17 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
     };
 
-    static List<Recording> recordings = new ArrayList<>();
-    static String currentPath;
-    static List<Recording> currentRecordingDirectory = new ArrayList<>();
-    static Recording currentRecording;
+    private List<Recording> recordings;
+    static private String currentPath; // We make this static to preserve our location
+    private List<Recording> currentRecordingDirectory;
+    private Recording currentRecording;
 
-    static MediaPlayer mediaPlayer;
-    ImageButton playButton;
-    ImageButton previousRecordingButton;
-    ImageButton nextRecordingButton;
-    ProgressBar progressBar;
-    Handler handler = new Handler();
+    static private MediaPlayer mediaPlayer;
+    private ImageButton playButton;
+    private ImageButton previousRecordingButton;
+    private ImageButton nextRecordingButton;
+    private ProgressBar progressBar;
+    private Handler handler = new Handler();
 
     private Toast mainToast;
 
@@ -111,11 +111,11 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             return;
         }
 
-        if (currentPath == null) {
-            File externalDataDir = getExternalFilesDir(getResources().getString(R.string
-                    .external_recording_dir));
-            updateCurrentDirectory(externalDataDir);
-        }
+        recordings = new ArrayList<>();
+        currentRecordingDirectory = new ArrayList<>();
+
+        File currentDir = (currentPath == null ? getRecordingDir() : new File(currentPath));
+        updateCurrentDirectory(currentDir);
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
         adapter = new RecordingAdapter(recordings, this);
@@ -189,6 +189,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         });
 
         progressBar = (ProgressBar) findViewById(R.id.progress);
+        progressBar.setMax(1);
+        progressBar.setProgress(0);
 
 
         service = new AlchemyLanguage();
@@ -225,8 +227,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 words.add(testKeyword("mad"));
                 keywords.setKeywords(words);
                 long timestamp = Calendar.getInstance().getTimeInMillis();
-                recordings.add(Recording.create(createKeywordList(keywords).toString(), timestamp, false)
-                        .addAudioPath(getExternalFilesDir(getResources().getString(R.string.external_recording_dir)).getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
+                recordings.add(Recording.create(createKeywordList(keywords).toString(), currentPath, timestamp, false)
+                        .addAudioPath(getRecordingDir().getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
                         .addTranscript("It's only game. Why you have to be mad?")
                         .addKeywords(new ArrayList<String>(Arrays.asList("game", "you", "mad"))));
 
@@ -298,11 +300,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private void saveRecordings() {
-        if (currentPath == null || currentPath.isEmpty()) {
-            return;
-        }
         for (Recording recording : recordings) {
-            recording.save(currentPath);
+            recording.save();
         }
     }
 
@@ -314,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private Recording dirToRecording(File dir) {
-        return new Recording(dir.getName(), dir.lastModified(), dir.isDirectory());
+        return new Recording(dir.getName(), dir.getParentFile().getAbsolutePath(), dir.lastModified(), dir.isDirectory());
     }
 
     private Recording readRecording(File file) {
@@ -333,8 +332,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         if (dir.isDirectory()) {
             currentPath = dir.getAbsolutePath();
             recordings.clear();
-            if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
-                recordings.add(Recording.create("../", 0L, true));
+            if (!currentPath.equals(getRecordingDir().getAbsolutePath())) {
+                recordings.add(Recording.create("../", currentPath, 0L, true));
             }
             for (File recording : dir.listFiles(fileFilter)) {
                 if (recording.isDirectory()) {
@@ -358,7 +357,10 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
      * Returns the directory where all audio recordings will be stored.
      */
     private String getAudioDir() {
-        return getExternalFilesDir("Audio").getAbsolutePath();
+        return getExternalFilesDir(getResources().getString(R.string.external_audio_dir)).getAbsolutePath();
+    }
+    private File getRecordingDir() {
+        return getExternalFilesDir(getResources().getString(R.string.external_recording_dir));
     }
 
     public void gotoDirectory(String directoryName) {
@@ -370,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 
     public void gotoPreviousDirectory() {
         // We don't want to leave the topmost file directory
-        if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
+        if (!currentPath.equals(getRecordingDir().getAbsolutePath())) {
             File parentDir = new File(currentPath).getParentFile();
             if (parentDir != null) {
                 updateCurrentDirectory(parentDir);
@@ -397,6 +399,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             // Update UI elements
             playButton.setImageResource(R.drawable.ic_pause);
             progressBar.setMax(mediaPlayer.getDuration());
+            progressBar.setProgress(0);
 
             // Update state information
             if (currentRecordingDirectory.indexOf(recording) < 0) {
@@ -430,16 +433,17 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             final String text = result.get(0);
             final long timestamp = Calendar.getInstance().getTimeInMillis();
 
-            // TODO Comment back in API call for actual usage.
             service.getKeywords(makeRequest(text)).enqueue(new ServiceCallback<Keywords>() {
                 @Override
                 public void onResponse(Keywords response) {
                     System.out.println(response);
                     List<String> keywords = createKeywordList(response);
-                    recordings.add(Recording.create(keywords.toString(), timestamp, false)
+                    Recording recording = Recording.create(keywords.toString(), currentPath, timestamp, false)
                             .addTranscript(text)
                             .addKeywords(keywords)
-                    );
+                            .addAudioPath(getAudioDir() + File.separator + Long.toString(timestamp) + ".3pg");
+                    recordings.add(recording);
+                    recording.save();
                     recyclerView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -524,9 +528,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_new_folder) {
+        if (id == R.id.action_new_folder) {
             // Create a subfolder within the current file view
             NewFolderDialogFragment.newInstance().show(getSupportFragmentManager(),
                     "fragment_new_folder_dialog");

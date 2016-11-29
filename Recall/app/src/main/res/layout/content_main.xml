@@ -37,13 +37,6 @@
             android:layout_weight="1"
             android:background="@null"
             android:src="@drawable/ic_previous"/>
-        <!--<ImageButton-->
-            <!--android:id="@+id/previous_track"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_weight="1"-->
-            <!--android:background="@null"-->
-            <!--android:src="@drawable/ic_previous"/>-->
         <ImageButton
             android:id="@+id/play_pause"
             android:layout_width="wrap_content"
@@ -51,13 +44,6 @@
             android:layout_weight="1"
             android:background="@null"
             android:src="@drawable/ic_play"/>
-        <!--<ImageButton-->
-            <!--android:id="@+id/next_track"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_weight="1"-->
-            <!--android:background="@null"-->
-            <!--android:src="@drawable/ic_next"/>-->
         <ImageButton
             android:id="@+id/next_recording"
             android:layout_width="wrap_content"

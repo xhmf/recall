@@ -21,10 +21,10 @@ public class Recording implements Comparable<Recording>, Serializable {
     public String title;
     public String date;
     public boolean isDirectory;
-    public long rawDate;
+    public long timestamp;
     public String audioPath;
     public String transcript;
-//    private int wordCount;
+    private String path;
     private String description;
     static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     public List<String> keywords;
@@ -39,28 +39,24 @@ public class Recording implements Comparable<Recording>, Serializable {
         this.title = title;
     }
 
-//    public int getWordCount() {
-//        return this.wordCount;
-//    }
-
     public String getDescription() {
         return this.description;
     }
 
-    public static Recording create(String title, long rawDate, boolean isDirectory) {
-        Recording result = new Recording(title, rawDate, isDirectory);
+    public static Recording create(String title, String path, long timestamp, boolean isDirectory) {
+        Recording result = new Recording(title, path, timestamp, isDirectory);
         return result;
     }
 
     @ParcelConstructor
-    public Recording(String title, long rawDate, boolean isDirectory) {
+    public Recording(String title, String path, long timestamp, boolean isDirectory) {
         this.modified = true;
-//        this.wordCount = 0;
         this.title = title;
-        this.rawDate = rawDate;
-
-        this.date = rawDate != 0L ? dateFormat.format(rawDate) : "(Previous)";
+        this.path = path;
+        this.timestamp = timestamp;
         this.isDirectory = isDirectory;
+
+        this.date = timestamp != 0L ? dateFormat.format(timestamp) : "(Previous)";
         this.description = isDirectory ? "(directory)" : "";
     }
 
@@ -73,8 +69,6 @@ public class Recording implements Comparable<Recording>, Serializable {
     public Recording addTranscript(String text) {
         this.modified = true;
         this.transcript = text;
-        // http://stackoverflow.com/questions/5864159/count-words-in-a-string-method
-//        this.wordCount = text.trim().split("\\s+").length;
         return this;
     }
 
@@ -107,9 +101,9 @@ public class Recording implements Comparable<Recording>, Serializable {
         } else {
             // At this stage, both recordings are directories or files
             // Either way, whichever is new has priority;
-            if (this.rawDate > otherRecording.rawDate) {
+            if (this.timestamp > otherRecording.timestamp) {
                 return -1;
-            } else if (this.rawDate < otherRecording.rawDate) {
+            } else if (this.timestamp < otherRecording.timestamp) {
                 return 1;
             } else {
                 return 0;
@@ -118,16 +112,16 @@ public class Recording implements Comparable<Recording>, Serializable {
     }
 
     public boolean isPreviousDir() {
-        return (this.isDirectory && this.rawDate == 0L);
+        return (this.isDirectory && this.timestamp == 0L);
     }
 
-    public void save(String path) {
+    public void save() {
         if (!modified || isDirectory || title.equals("../")) {
             return;
         }
         try {
             this.modified = false; // So that after we read this file we don't rewrite again
-            File file = new File(path, rawDate + ".recall");
+            File file = new File(path, timestamp + ".recall");
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -137,5 +131,9 @@ public class Recording implements Comparable<Recording>, Serializable {
         } catch (IOException e) {
             Log.e(MainActivity.APP, e.getMessage());
         }
+    }
+
+    public boolean equals(Recording otherRecording) {
+        return this.timestamp == otherRecording.timestamp;
     }
 }
