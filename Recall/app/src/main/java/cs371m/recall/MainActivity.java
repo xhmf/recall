@@ -85,15 +85,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 
     private List<Recording> recordings;
     static private String currentPath; // We make this static to preserve our location
-    private List<Recording> currentRecordingDirectory;
-    private Recording currentRecording;
-
-    static private MediaPlayer mediaPlayer;
-    private ImageButton playButton;
-    private ImageButton previousRecordingButton;
-    private ImageButton nextRecordingButton;
-    private ProgressBar progressBar;
-    private Handler handler = new Handler();
 
     private Toast mainToast;
 
@@ -112,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
 
         recordings = new ArrayList<>();
-        currentRecordingDirectory = new ArrayList<>();
 
         File currentDir = (currentPath == null ? getRecordingDir() : new File(currentPath));
         updateCurrentDirectory(currentDir);
@@ -124,94 +114,11 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 
         adapter.notifyDataSetChanged();
 
-        // Media player UI
-        playButton = (ImageButton) findViewById(R.id.play_pause);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) {
-                        playButton.setImageResource(R.drawable.ic_play);
-                        mediaPlayer.pause();
-                    } else {
-                        playButton.setImageResource(R.drawable.ic_pause);
-                        mediaPlayer.start();
-                    }
-                }
-            }
-        });
-
-        previousRecordingButton = (ImageButton) findViewById(R.id.previous_recording);
-        previousRecordingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (currentRecording != null && currentRecordingDirectory.size() != 0) {
-                    int currentPosition = currentRecordingDirectory.indexOf(currentRecording);
-                    if (currentPosition < 0) {
-                        return;
-                    }
-                    int previousPosition = (currentPosition > 0 ? currentPosition - 1 :
-                            currentRecordingDirectory.size() - 1);
-
-                    // If we encounter a directory then wrap around to the back of the list
-                    while (currentRecordingDirectory.get(previousPosition).isDirectory) {
-                        previousPosition = (previousPosition > 0 ? previousPosition - 1 :
-                                currentRecordingDirectory.size() - 1);
-                    }
-                    Recording previousRecording = currentRecordingDirectory.get(previousPosition);
-
-                    playRecording(previousRecording);
-                }
-            }
-        });
-
-        nextRecordingButton = (ImageButton) findViewById(R.id.next_recording);
-        nextRecordingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (currentRecording != null && currentRecordingDirectory.size() != 0) {
-                    int currentPosition = currentRecordingDirectory.indexOf(currentRecording);
-                    if (currentPosition < 0) {
-                        return;
-                    }
-                    int nextPosition = (currentPosition + 1) % currentRecordingDirectory.size();
-
-                    // If we encounter a directory then that means we've wrapped around to the
-                    // front of the list
-                    while (currentRecordingDirectory.get(nextPosition).isDirectory) {
-                        nextPosition = (nextPosition + 1) % currentRecordingDirectory.size();
-                    }
-                    Recording nextRecording = currentRecordingDirectory.get(nextPosition);
-
-                    playRecording(nextRecording);
-                }
-            }
-        });
-
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        progressBar.setMax(1);
-        progressBar.setProgress(0);
-
-
         service = new AlchemyLanguage();
         service.setApiKey(KEY);
         speechService = new SpeechToText();
         speechService.setEndPoint("https://stream.watsonplatform.net/speech-to-text/api");
         speechService.setApiKey(KEY);
-
-        ImageButton viewTranscriptButton = (ImageButton) findViewById(R.id.open_transcript);
-        viewTranscriptButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (currentRecording != null) {
-                    Intent recordingActivityIntent = new Intent(getApplicationContext(), RecordingActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable("recording", Parcels.wrap(currentRecording));
-                    recordingActivityIntent.putExtras(bundle);
-                    startActivity(recordingActivityIntent);
-                }
-            }
-        });
 
         FloatingActionButton addRecordingButton = (FloatingActionButton) findViewById(R.id
                 .add_recording);
@@ -250,18 +157,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
 //                }
             }
         });
-
-        // Start progress bar updater thread
-        Runnable progressBarUpdate = new Runnable() {
-            @Override
-            public void run() {
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
-                }
-                handler.postDelayed(this, 200);
-            }
-        };
-        handler.postDelayed(progressBarUpdate, 200);
     }
 
     private RecognizeOptions getRecognizeOptions() {
@@ -305,13 +200,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // save list of recordings
-        saveRecordings();
-    }
-
     private Recording dirToRecording(File dir) {
         return new Recording(dir.getName(), dir.getParentFile().getAbsolutePath(), dir.lastModified(), dir.isDirectory());
     }
@@ -328,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private void updateCurrentDirectory(File dir) {
-        saveRecordings();
         if (dir.isDirectory()) {
             currentPath = dir.getAbsolutePath();
             recordings.clear();
@@ -366,6 +253,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     public void gotoDirectory(String directoryName) {
         File newCurrentDir = new File(currentPath, directoryName);
         if (newCurrentDir.exists() && newCurrentDir.isDirectory()) {
+            saveRecordings();
             updateCurrentDirectory(newCurrentDir);
         }
     }
@@ -375,39 +263,9 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         if (!currentPath.equals(getRecordingDir().getAbsolutePath())) {
             File parentDir = new File(currentPath).getParentFile();
             if (parentDir != null) {
+                saveRecordings();
                 updateCurrentDirectory(parentDir);
             }
-        }
-    }
-
-    public void playRecording(Recording recording) {
-        try {
-            if (mediaPlayer == null) {
-                mediaPlayer = new MediaPlayer();
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mediaPlayer) {
-                        progressBar.setProgress(progressBar.getMax());
-                    }
-                });
-            }
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(recording.audioPath);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-
-            // Update UI elements
-            playButton.setImageResource(R.drawable.ic_pause);
-            progressBar.setMax(mediaPlayer.getDuration());
-            progressBar.setProgress(0);
-
-            // Update state information
-            if (currentRecordingDirectory.indexOf(recording) < 0) {
-                currentRecordingDirectory = new ArrayList<>(recordings);
-            }
-            currentRecording = recording;
-        } catch (IOException ex) {
-            displayToast("Unable to play recording.");
         }
     }
 
@@ -418,6 +276,41 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
         mainToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
         mainToast.show();
+    }
+
+    private List<String> createKeywordList(Keywords keywords) {
+        List<String> result = new ArrayList<>();
+        for(Keyword word : keywords.getKeywords()) {
+//            if (word.getRelevance() > 50) {
+//                result.add(word.getText());
+//            }
+            result.add(word.getText());
+        }
+        return result;
+    }
+
+    private void saveAudio(Uri audioUri, String fileName) {
+        ContentResolver contentResolver = getContentResolver();
+        try {
+            InputStream filestream = contentResolver.openInputStream(audioUri);
+            // Give file name and persist to disk.
+            File file = new File(getAudioDir(), fileName + ".3pg");
+            OutputStream out = new FileOutputStream(file);
+            try {
+                byte[] buffer = new byte[4 * 1024]; // or other buffer size
+                int read;
+
+                while ((read = filestream.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+                out.flush();
+            } finally {
+                out.close();
+                filestream.close();
+            }
+        } catch (IOException e) {
+            Log.e(APP, e.getMessage());
+        }
     }
 
     @Override
@@ -466,48 +359,21 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
     }
 
-    private List<String> createKeywordList(Keywords keywords) {
-        List<String> result = new ArrayList<>();
-        for(Keyword word : keywords.getKeywords()) {
-//            if (word.getRelevance() > 50) {
-//                result.add(word.getText());
-//            }
-            result.add(word.getText());
-        }
-        return result;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCurrentDirectory(new File(currentPath));
     }
 
-    private void saveAudio(Uri audioUri, String fileName) {
-        ContentResolver contentResolver = getContentResolver();
-        try {
-            InputStream filestream = contentResolver.openInputStream(audioUri);
-            // Give file name and persist to disk.
-            File file = new File(getAudioDir(), fileName + ".3pg");
-            OutputStream out = new FileOutputStream(file);
-            try {
-                byte[] buffer = new byte[4 * 1024]; // or other buffer size
-                int read;
-
-                while ((read = filestream.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
-                }
-                out.flush();
-            } finally {
-                out.close();
-                filestream.close();
-            }
-        } catch (IOException e) {
-            Log.e(APP, e.getMessage());
-        }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // save list of recordings
+        saveRecordings();
     }
 
     @Override
     protected void onDestroy() {
-        if (mediaPlayer != null) {
-            MediaPlayer oldMediaPlayer = mediaPlayer;
-            mediaPlayer = null;
-            oldMediaPlayer.release();
-        }
         // Save any recordings with a default filename of the current time
         saveRecordings();
         super.onDestroy();

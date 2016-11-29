@@ -43,6 +43,10 @@ public class Recording implements Comparable<Recording>, Serializable {
         return this.description;
     }
 
+    public String getFilePath() {
+        return path + File.separator + Long.toString(timestamp) + ".recall";
+    }
+
     public static Recording create(String title, String path, long timestamp, boolean isDirectory) {
         Recording result = new Recording(title, path, timestamp, isDirectory);
         return result;
@@ -131,9 +135,5 @@ public class Recording implements Comparable<Recording>, Serializable {
         } catch (IOException e) {
             Log.e(MainActivity.APP, e.getMessage());
         }
-    }
-
-    public boolean equals(Recording otherRecording) {
-        return this.timestamp == otherRecording.timestamp;
     }
 }

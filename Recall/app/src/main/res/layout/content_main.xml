@@ -14,59 +14,11 @@
     tools:context="cs371m.recall.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <ProgressBar
-        android:id="@+id/progress"
-        style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-    />
-
-    <LinearLayout
-        android:id="@+id/player"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/progress"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal">
-
-        <ImageButton
-            android:id="@+id/previous_recording"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:src="@drawable/ic_previous"/>
-        <ImageButton
-            android:id="@+id/play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:src="@drawable/ic_play"/>
-        <ImageButton
-            android:id="@+id/next_recording"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:src="@drawable/ic_next"/>
-        <ImageButton
-            android:id="@+id/open_transcript"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:src="@drawable/ic_transcript" />
-
-    </LinearLayout>
-
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/player">
+        android:layout_height="match_parent">
 
     </android.support.v7.widget.RecyclerView>
 
@@ -74,8 +26,8 @@
         android:id="@+id/add_recording"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/player"
         android:layout_marginBottom="12dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         app:srcCompat="@android:drawable/ic_input_add"/>
 

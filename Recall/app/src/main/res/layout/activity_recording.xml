@@ -63,12 +63,30 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/audio_media_player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/keywords">
+
+        <ImageButton
+            android:id="@+id/audio_play_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_play"/>
+        <SeekBar
+            android:id="@+id/audio_seek_bar"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginTop="12dp"/>
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/keywords"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/audio_media_player"
+        android:layout_above="@+id/delete_recording_button"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp">
 
@@ -80,5 +98,13 @@
             android:text="Example" />
 
     </ScrollView>
+
+    <ImageButton
+        android:id="@+id/delete_recording_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/ic_trash"/>
 
 </RelativeLayout>

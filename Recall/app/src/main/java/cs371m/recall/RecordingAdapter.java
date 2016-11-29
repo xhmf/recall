@@ -51,18 +51,15 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
                 if (recording.isDirectory) {
                     if (recording.isPreviousDir()) {
                         activity.gotoPreviousDirectory();
-                    }
-                    else {
+                    } else {
                         activity.gotoDirectory(recording.title);
                     }
-                }
-                else {
-//                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
-//                    Bundle bundle = new Bundle();
-//                    bundle.putParcelable("recording", Parcels.wrap(recording));
-//                    intent.putExtras(bundle);
-//                    v.getContext().startActivity(intent);
-                    activity.playRecording(recording);
+                } else {
+                    Intent intent = new Intent(v.getContext(), RecordingActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable("recording", Parcels.wrap(recording));
+                    intent.putExtras(bundle);
+                    v.getContext().startActivity(intent);
                 }
             }
         }
