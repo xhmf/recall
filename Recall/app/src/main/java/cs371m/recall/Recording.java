@@ -20,11 +20,12 @@ public class Recording implements Comparable<Recording>, Serializable {
 
     public String title;
     public String date;
-    public String duration;
     public boolean isDirectory;
     public long rawDate;
     public String audioPath;
     public String transcript;
+//    private int wordCount;
+    private String description;
     static SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     public List<String> keywords;
     private boolean modified;
@@ -34,41 +35,57 @@ public class Recording implements Comparable<Recording>, Serializable {
     }
 
     public void setTitle(String title) {
+        this.modified = true;
         this.title = title;
     }
 
-    public static Recording create(String title, long rawDate, String duration, boolean isDirectory) {
-        Recording result = new Recording(title, rawDate, duration, isDirectory);
+//    public int getWordCount() {
+//        return this.wordCount;
+//    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public static Recording create(String title, long rawDate, boolean isDirectory) {
+        Recording result = new Recording(title, rawDate, isDirectory);
         return result;
     }
 
     @ParcelConstructor
-    public Recording(String title, long rawDate, String duration, boolean isDirectory) {
+    public Recording(String title, long rawDate, boolean isDirectory) {
         this.modified = true;
+//        this.wordCount = 0;
         this.title = title;
         this.rawDate = rawDate;
 
         this.date = rawDate != 0L ? dateFormat.format(rawDate) : "(Previous)";
         this.isDirectory = isDirectory;
-        this.duration = this.isDirectory ? "(directory)" : duration;
+        this.description = isDirectory ? "(directory)" : "";
     }
 
     public Recording addAudioPath(String path) {
+        this.modified = true;
         this.audioPath = path;
         return this;
     }
 
     public Recording addTranscript(String text) {
+        this.modified = true;
         this.transcript = text;
+        // http://stackoverflow.com/questions/5864159/count-words-in-a-string-method
+//        this.wordCount = text.trim().split("\\s+").length;
         return this;
     }
 
     public Recording addKeywords(List<String> keywords) {
+        this.modified = true;
         this.keywords = keywords;
         return this;
     }
 
     public Recording addKeyword(String word) {
+        this.modified = true;
         this.keywords.add(word);
         return this;
     }

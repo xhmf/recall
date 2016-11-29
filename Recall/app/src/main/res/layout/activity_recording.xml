@@ -20,92 +20,105 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
             android:text="Title: "
+            android:textSize="18sp"
         />
 
         <EditText
             android:id="@+id/title_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Title"
-        />
+            android:textSize="18sp"
+            android:maxLines="1"
+            android:inputType="text"
+            android:imeOptions="actionDone"/>
 
     </LinearLayout>
-    <TextView
-        android:id="@+id/duration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:text="Duration: "
-    />
 
     <LinearLayout
         android:id="@+id/keywords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/duration"
+        android:layout_below="@id/title"
         android:orientation="horizontal"
         >
         <Button
             android:id="@+id/key1"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
         <Button
             android:id="@+id/key2"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
         <Button
             android:id="@+id/key3"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
 
     </LinearLayout>
 
 
-    <TextView
-        android:id="@+id/transcript"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/keywords"/>
-
-    <LinearLayout
-        android:id="@+id/transcript_page_navigator"
+        android:layout_below="@id/keywords"
         android:layout_alignParentBottom="true"
-        android:gravity="center_horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp">
 
-        <ImageButton
-            android:id="@+id/previous_transcript_page"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_previous"/>
-        <ImageButton
-            android:id="@+id/next_transcript_page"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_next"/>
-        <EditText
-            android:inputType="number"
-            android:id="@+id/input_transcript_page_number"
-            android:textAlignment="center"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:text="1"/>
         <TextView
+            android:id="@+id/transcript"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="/"/>
-        <TextView
-            android:id="@+id/transcript_page_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:text="1"/>
-    </LinearLayout>
+            android:textSize="18sp"
+            android:text="Example" />
+
+    </ScrollView>
+
+    <!--<LinearLayout-->
+        <!--android:id="@+id/transcript_page_navigator"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:gravity="center_horizontal"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content">-->
+
+        <!--<ImageButton-->
+            <!--android:id="@+id/previous_transcript_page"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:src="@drawable/ic_previous"/>-->
+        <!--<ImageButton-->
+            <!--android:id="@+id/next_transcript_page"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:src="@drawable/ic_next"/>-->
+        <!--<EditText-->
+            <!--android:inputType="number"-->
+            <!--android:id="@+id/input_transcript_page_number"-->
+            <!--android:textAlignment="center"-->
+            <!--android:layout_width="48dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="1"-->
+            <!--android:textSize="18sp"-->
+            <!--android:imeOptions="actionDone"/>-->
+        <!--<TextView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="/"-->
+            <!--android:textSize="18sp"/>-->
+        <!--<TextView-->
+            <!--android:id="@+id/transcript_page_count"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:textStyle="bold"-->
+            <!--android:text="1"-->
+            <!--android:textSize="18sp"/>-->
+    <!--</LinearLayout>-->
 
 </RelativeLayout>

@@ -29,7 +29,7 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
 
         public TextView title;
         public TextView date;
-        public TextView duration;
+        public TextView description;
         public View container;
         public Recording recording;
 
@@ -38,7 +38,7 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
             container = view;
             title = (TextView) view.findViewById(R.id.title);
             date = (TextView) view.findViewById(R.id.date);
-            duration = (TextView) view.findViewById(R.id.duration);
+            description = (TextView) view.findViewById(R.id.description);
             container.setOnClickListener(this);
         }
 
@@ -82,8 +82,8 @@ public class RecordingAdapter extends RecyclerView.Adapter<RecordingAdapter.Reco
     public void onBindViewHolder(RecordViewHolder holder, int position) {
         final Recording recording = recordingList.get(position);
         holder.title.setText(recording.title);
-        holder.duration.setText(recording.duration);
-        holder.duration.setTypeface(holder.duration.getTypeface(), Typeface.ITALIC);
+        holder.description.setText(recording.getDescription());
+        holder.description.setTypeface(holder.description.getTypeface(), Typeface.ITALIC);
         holder.date.setText(recording.date);
     }
 

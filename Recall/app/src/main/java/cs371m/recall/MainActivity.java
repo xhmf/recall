@@ -83,19 +83,19 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         }
     };
 
-    List<Recording> recordings = new ArrayList<>();
-    String currentPath = "";
-    List<Recording> currentRecordingDirectory = new ArrayList<>();
-    Recording currentRecording = null;
+    static List<Recording> recordings = new ArrayList<>();
+    static String currentPath;
+    static List<Recording> currentRecordingDirectory = new ArrayList<>();
+    static Recording currentRecording;
 
-    static public MediaPlayer mediaPlayer = null;
+    static MediaPlayer mediaPlayer;
     ImageButton playButton;
     ImageButton previousRecordingButton;
     ImageButton nextRecordingButton;
     ProgressBar progressBar;
     Handler handler = new Handler();
 
-    private Toast mainToast = null;
+    private Toast mainToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,14 +105,16 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
         setSupportActionBar(toolbar);
 
         // We can only use this app if we have an SD card to write to...
-        if (isExternalStorageReadable() && isExternalStorageWritable()) {
-            File externalDataDir = getExternalFilesDir(getResources().getString(R.string
-                    .external_recording_dir));
-            updateCurrentDirectory(externalDataDir);
-        } else {
+        if (!isExternalStorageReadable() && !isExternalStorageWritable()) {
             displayToast("You need external storage for this app.");
             finish();
             return;
+        }
+
+        if (currentPath == null) {
+            File externalDataDir = getExternalFilesDir(getResources().getString(R.string
+                    .external_recording_dir));
+            updateCurrentDirectory(externalDataDir);
         }
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler);
@@ -222,8 +224,8 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 words.add(testKeyword("you"));
                 words.add(testKeyword("mad"));
                 keywords.setKeywords(words);
-                recordings.add(Recording.create(keywords.toString(), Calendar.getInstance()
-                        .getTimeInMillis(), "00:00:05", false)
+                long timestamp = Calendar.getInstance().getTimeInMillis();
+                recordings.add(Recording.create(createKeywordList(keywords).toString(), timestamp, false)
                         .addAudioPath(getExternalFilesDir(getResources().getString(R.string.external_recording_dir)).getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
                         .addTranscript("It's only game. Why you have to be mad?")
                         .addKeywords(new ArrayList<String>(Arrays.asList("game", "you", "mad"))));
@@ -296,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private void saveRecordings() {
-        if (currentPath.isEmpty()) {
+        if (currentPath == null || currentPath.isEmpty()) {
             return;
         }
         for (Recording recording : recordings) {
@@ -312,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private Recording dirToRecording(File dir) {
-        return new Recording(dir.getName(), dir.lastModified(), "", dir.isDirectory());
+        return new Recording(dir.getName(), dir.lastModified(), dir.isDirectory());
     }
 
     private Recording readRecording(File file) {
@@ -327,11 +329,12 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     private void updateCurrentDirectory(File dir) {
+        saveRecordings();
         if (dir.isDirectory()) {
             currentPath = dir.getAbsolutePath();
             recordings.clear();
             if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
-                recordings.add(new Recording("../", 0L, "", true));
+                recordings.add(Recording.create("../", 0L, true));
             }
             for (File recording : dir.listFiles(fileFilter)) {
                 if (recording.isDirectory()) {
@@ -359,7 +362,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     public void gotoDirectory(String directoryName) {
-        saveRecordings();
         File newCurrentDir = new File(currentPath, directoryName);
         if (newCurrentDir.exists() && newCurrentDir.isDirectory()) {
             updateCurrentDirectory(newCurrentDir);
@@ -367,7 +369,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     }
 
     public void gotoPreviousDirectory() {
-        saveRecordings();
         // We don't want to leave the topmost file directory
         if (!currentPath.equals(getExternalFilesDir("Recall").getAbsolutePath())) {
             File parentDir = new File(currentPath).getParentFile();
@@ -396,7 +397,6 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             // Update UI elements
             playButton.setImageResource(R.drawable.ic_pause);
             progressBar.setMax(mediaPlayer.getDuration());
-            progressBar.setProgress(0);
 
             // Update state information
             if (currentRecordingDirectory.indexOf(recording) < 0) {
@@ -435,9 +435,10 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
                 @Override
                 public void onResponse(Keywords response) {
                     System.out.println(response);
-                    recordings.add(Recording.create(response.toString(), timestamp, "", false)
+                    List<String> keywords = createKeywordList(response);
+                    recordings.add(Recording.create(keywords.toString(), timestamp, false)
                             .addTranscript(text)
-                            .addKeywords(createKeywordList(response))
+                            .addKeywords(keywords)
                     );
                     recyclerView.post(new Runnable() {
                         @Override

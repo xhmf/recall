@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:textSize="24sp"
         android:inputType="text"
+        android:maxLines="1"
         android:imeOptions="actionDone"/>
 
 </LinearLayout>
