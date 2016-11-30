@@ -58,6 +58,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -127,34 +128,34 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
             @Override
             public void onClick(View view) {
                 // Only for testing. Switch to actual api call when done.
-                Keywords keywords = new Keywords();
-                List<Keyword> words = new ArrayList<>();
-                words.add(testKeyword("game"));
-                words.add(testKeyword("you"));
-                words.add(testKeyword("mad"));
-                keywords.setKeywords(words);
-                long timestamp = Calendar.getInstance().getTimeInMillis();
-                recordings.add(Recording.create(createKeywordList(keywords).toString(), currentPath, timestamp, false)
-                        .addAudioPath(getRecordingDir().getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
-                        .addTranscript("It's only game. Why you have to be mad?")
-                        .addKeywords(new ArrayList<String>(Arrays.asList("game", "you", "mad"))));
-
-                Collections.sort(recordings);
-                adapter.notifyDataSetChanged();
-
-//                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//                Keywords keywords = new Keywords();
+//                List<Keyword> words = new ArrayList<>();
+//                words.add(testKeyword("game"));
+//                words.add(testKeyword("you"));
+//                words.add(testKeyword("mad"));
+//                keywords.setKeywords(words);
+//                long timestamp = Calendar.getInstance().getTimeInMillis();
+//                recordings.add(Recording.create(createKeywordList(keywords).toString(), currentPath, timestamp, false)
+//                        .addAudioPath(getRecordingDir().getAbsolutePath() + File.separator + "Why you heff to be mad (Original).mp3")
+//                        .addTranscript("It's only game. Why you have to be mad?")
+//                        .addKeywords(new ArrayList<String>(Arrays.asList("game", "you", "mad"))));
 //
-//                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-//                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
-//                intent.putExtra("android.speech.extra.GET_AUDIO", true);
-//
-//                try {
-//                    startActivityForResult(intent, 1);
-//                } catch (ActivityNotFoundException a) {
-//                    Toast.makeText(getApplicationContext(),
-//                            "Your device doesn't support Speech to Text",
-//                            Toast.LENGTH_SHORT).show();
-//                }
+//                Collections.sort(recordings);
+//                adapter.notifyDataSetChanged();
+
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+                intent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", "audio/AMR");
+                intent.putExtra("android.speech.extra.GET_AUDIO", true);
+
+                try {
+                    startActivityForResult(intent, 1);
+                } catch (ActivityNotFoundException a) {
+                    Toast.makeText(getApplicationContext(),
+                            "Your device doesn't support Speech to Text",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -281,12 +282,12 @@ public class MainActivity extends AppCompatActivity implements NewFolderDialogFr
     private List<String> createKeywordList(Keywords keywords) {
         List<String> result = new ArrayList<>();
         for(Keyword word : keywords.getKeywords()) {
-//            if (word.getRelevance() > 50) {
-//                result.add(word.getText());
-//            }
+            if (word.getRelevance() > .75) {
+                result.add(word.getText());
+            }
             result.add(word.getText());
         }
-        return result;
+        return new ArrayList<>(new HashSet<>(result));
     }
 
     private void saveAudio(Uri audioUri, String fileName) {

@@ -12,10 +12,17 @@
 
 
     <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0dp"
+        android:layout_height="0dp">
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/title"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,40 +35,20 @@
             android:id="@+id/title_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:maxLines="1"
+            android:imeOptions="actionDone"
             android:inputType="text"
-            android:imeOptions="actionDone"/>
+            android:maxLines="1"
+            android:textSize="18sp"/>
 
     </LinearLayout>
 
-    <LinearLayout
+    <org.apmem.tools.layouts.FlowLayout
         android:id="@+id/keywords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:orientation="horizontal"
-        >
-        <Button
-            android:id="@+id/key1"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"/>
-        <Button
-            android:id="@+id/key2"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"/>
-        <Button
-            android:id="@+id/key3"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"/>
+        android:layout_below="@id/title">
 
-    </LinearLayout>
+    </org.apmem.tools.layouts.FlowLayout>
 
     <LinearLayout
         android:id="@+id/audio_media_player"
@@ -77,25 +64,24 @@
         <SeekBar
             android:id="@+id/audio_seek_bar"
             android:layout_width="match_parent"
-            android:layout_height="12dp"
-            android:layout_marginTop="12dp"/>
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/audio_media_player"
         android:layout_above="@+id/delete_recording_button"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp">
+        android:layout_below="@id/audio_media_player"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="12dp">
 
         <TextView
             android:id="@+id/transcript"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:text="Example" />
+            android:text="Example"
+            android:textSize="18sp"/>
 
     </ScrollView>
 

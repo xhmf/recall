@@ -22,10 +22,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apmem.tools.layouts.FlowLayout;
 import org.parceler.Parcels;
 
 import java.io.File;
@@ -37,9 +39,6 @@ public class RecordingActivity extends AppCompatActivity {
 
     public EditText title;
     public TextView transcript;
-    public Button keyword1;
-    public Button keyword2;
-    public Button keyword3;
     public Recording recording;
     private SpannableString displayTranscript;
     private ImageButton deleteRecordingButton;
@@ -73,9 +72,6 @@ public class RecordingActivity extends AppCompatActivity {
         });
 
         transcript = (TextView) findViewById(R.id.transcript);
-        keyword1 = (Button) findViewById(R.id.key1);
-        keyword2 = (Button) findViewById(R.id.key2);
-        keyword3 = (Button) findViewById(R.id.key3);
 
         // Media player UI
         audioPlayButton = (ImageButton) findViewById(R.id.audio_play_button);
@@ -159,12 +155,18 @@ public class RecordingActivity extends AppCompatActivity {
                 displayTranscript = new SpannableString(recording.transcript);
                 transcript.setText(displayTranscript);
 
-                keyword1.setText(recording.keywords.get(0));
-                keyword1.setOnClickListener(createClickAction(recording.keywords.get(0)));
-                keyword2.setText(recording.keywords.get(1));
-                keyword2.setOnClickListener(createClickAction(recording.keywords.get(1)));
-                keyword3.setText(recording.keywords.get(2));
-                keyword3.setOnClickListener(createClickAction(recording.keywords.get(2)));
+                FlowLayout keywords = (FlowLayout) findViewById(R.id.keywords);
+                for (String keyword : recording.keywords) {
+                    final Button current = new Button(this);
+                    current.setText(keyword);
+                    current.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            highlightInTranscript(current.getText().toString());
+                        }
+                    });
+                    keywords.addView(current);
+                }
 
                 playRecording(recording);
             } else {
